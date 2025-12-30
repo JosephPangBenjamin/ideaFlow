@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI 总结与分类设置</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "primary-hover": "#0f4bc4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "card-light": "#ffffff",
+                        "card-dark": "#192233",
+                        "border-light": "#e2e8f0",
+                        "border-dark": "#324467",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "Noto Sans", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101622;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #324467;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4B5E85;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased text-slate-900 dark:text-white">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-8">
+<div class="layout-content-container flex flex-col max-w-[1200px] flex-1 gap-8">
+<div class="flex flex-wrap items-end justify-between gap-4 pb-4 border-b border-border-light dark:border-slate-800">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2 text-sm text-slate-500 dark:text-[#92a4c9]">
+<span>设置</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-primary font-bold">智能与分类</span>
+</div>
+<h1 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">AI 总结与分类配置</h1>
+<p class="text-slate-500 dark:text-[#92a4c9] text-base font-normal max-w-2xl">
+                            配置智能助手如何分析您的画布内容，并管理项目的自定义任务分类标签系统。
+                        </p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center rounded-lg h-10 px-4 bg-slate-200 dark:bg-[#232f48] text-slate-700 dark:text-white text-sm font-bold transition hover:opacity-90">
+<span class="material-symbols-outlined text-[20px] mr-2">history</span>
+<span class="truncate">重置默认</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold shadow-lg shadow-primary/30 transition hover:bg-primary-hover">
+<span class="material-symbols-outlined text-[20px] mr-2">check</span>
+<span class="truncate">保存配置</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<div class="lg:col-span-7 flex flex-col gap-8">
+<div class="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow-sm border border-border-light dark:border-border-dark">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400">
+<span class="material-symbols-outlined text-2xl">auto_awesome</span>
+</div>
+<div>
+<h2 class="text-xl font-bold">AI 智能总结</h2>
+<p class="text-xs text-slate-500 dark:text-slate-400">自动分析画布内容生成摘要与任务</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-500/50 dark:peer-focus:ring-purple-500/30 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+</label>
+</div>
+<div class="flex flex-col gap-6 pl-2">
+<div class="flex flex-col gap-3">
+<label class="text-sm font-bold text-slate-700 dark:text-slate-300">总结范围 (Summary Scope)</label>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="scope" type="radio"/>
+<div class="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-primary bg-primary/5 text-primary transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary border-slate-200 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined">aspect_ratio</span>
+<span class="text-xs font-bold">整个画布</span>
+</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="scope" type="radio"/>
+<div class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 transition-all peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary hover:bg-slate-50 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined">crop_free</span>
+<span class="text-xs font-bold">特定区域</span>
+</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="scope" type="radio"/>
+<div class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 transition-all peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary hover:bg-slate-50 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined">checklist_rtl</span>
+<span class="text-xs font-bold">选定任务</span>
+</div>
+</label>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<label class="text-sm font-bold text-slate-700 dark:text-slate-300">自动提取内容</label>
+<div class="flex flex-wrap gap-3">
+<label class="inline-flex items-center gap-2 cursor-pointer select-none px-3 py-2 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary transition">
+<input checked="" class="form-checkbox rounded text-primary border-slate-300 focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-200">待办事项 (To-Do)</span>
+</label>
+<label class="inline-flex items-center gap-2 cursor-pointer select-none px-3 py-2 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary transition">
+<input checked="" class="form-checkbox rounded text-primary border-slate-300 focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-200">关键风险 (Risks)</span>
+</label>
+<label class="inline-flex items-center gap-2 cursor-pointer select-none px-3 py-2 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary transition">
+<input class="form-checkbox rounded text-primary border-slate-300 focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-200">创意亮点 (Highlights)</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow-sm border border-border-light dark:border-border-dark flex-1">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded-lg bg-blue-500/10 text-primary">
+<span class="material-symbols-outlined text-2xl">category</span>
+</div>
+<div>
+<h2 class="text-xl font-bold">分类与状态管理</h2>
+<p class="text-xs text-slate-500 dark:text-slate-400">自定义任务卡片的状态标签和颜色</p>
+</div>
+</div>
+<button class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">add</span> 添加分类
+                                </button>
+</div>
+<div class="flex flex-col gap-3">
+<div class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+<div class="col-span-1">颜色</div>
+<div class="col-span-6">分类名称</div>
+<div class="col-span-3">属性</div>
+<div class="col-span-2 text-right">操作</div>
+</div>
+<div class="group grid grid-cols-12 gap-4 items-center p-3 rounded-lg bg-slate-50 dark:bg-[#111722] border border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition">
+<div class="col-span-1 flex justify-center">
+<div class="w-5 h-5 rounded-full bg-slate-400 cursor-pointer hover:scale-110 transition shadow-sm ring-2 ring-white dark:ring-[#192233]"></div>
+</div>
+<div class="col-span-6">
+<input class="w-full bg-transparent border-none p-0 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:ring-0 placeholder:text-slate-400" type="text" value="待办 (Backlog)"/>
+</div>
+<div class="col-span-3">
+<span class="px-2 py-1 text-[10px] rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold">默认状态</span>
+</div>
+<div class="col-span-2 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 text-slate-400 hover:text-red-500 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="删除">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+<div class="group grid grid-cols-12 gap-4 items-center p-3 rounded-lg bg-white dark:bg-[#192233] border border-slate-200 dark:border-slate-700 hover:shadow-md transition">
+<div class="col-span-1 flex justify-center">
+<div class="w-5 h-5 rounded-full bg-blue-500 cursor-pointer hover:scale-110 transition shadow-sm ring-2 ring-white dark:ring-[#192233]"></div>
+</div>
+<div class="col-span-6">
+<input class="w-full bg-transparent border-none p-0 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:ring-0 placeholder:text-slate-400" type="text" value="进行中 (In Progress)"/>
+</div>
+<div class="col-span-3">
+</div>
+<div class="col-span-2 flex justify-end opacity-50 group-hover:opacity-100 transition-opacity">
+<div class="flex gap-1">
+<button class="p-1 text-slate-400 hover:text-primary rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+<span class="material-symbols-outlined text-[18px]">drag_indicator</span>
+</button>
+<button class="p-1 text-slate-400 hover:text-red-500 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="group grid grid-cols-12 gap-4 items-center p-3 rounded-lg bg-white dark:bg-[#192233] border border-slate-200 dark:border-slate-700 hover:shadow-md transition">
+<div class="col-span-1 flex justify-center">
+<div class="w-5 h-5 rounded-full bg-orange-500 cursor-pointer hover:scale-110 transition shadow-sm ring-2 ring-white dark:ring-[#192233]"></div>
+</div>
+<div class="col-span-6">
+<input class="w-full bg-transparent border-none p-0 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:ring-0 placeholder:text-slate-400" type="text" value="需评审 (Review)"/>
+</div>
+<div class="col-span-3">
+<span class="px-2 py-1 text-[10px] rounded bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-bold flex items-center gap-1 w-fit">
+<span class="material-symbols-outlined text-[12px]">notifications</span> 通知
+                                        </span>
+</div>
+<div class="col-span-2 flex justify-end opacity-50 group-hover:opacity-100 transition-opacity">
+<div class="flex gap-1">
+<button class="p-1 text-slate-400 hover:text-primary rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+<span class="material-symbols-outlined text-[18px]">drag_indicator</span>
+</button>
+<button class="p-1 text-slate-400 hover:text-red-500 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="group grid grid-cols-12 gap-4 items-center p-3 rounded-lg bg-white dark:bg-[#192233] border border-slate-200 dark:border-slate-700 hover:shadow-md transition">
+<div class="col-span-1 flex justify-center">
+<div class="w-5 h-5 rounded-full bg-green-500 cursor-pointer hover:scale-110 transition shadow-sm ring-2 ring-white dark:ring-[#192233]"></div>
+</div>
+<div class="col-span-6">
+<input class="w-full bg-transparent border-none p-0 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:ring-0 placeholder:text-slate-400" type="text" value="已完成 (Done)"/>
+</div>
+<div class="col-span-3">
+<span class="px-2 py-1 text-[10px] rounded bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 font-bold">自动归档</span>
+</div>
+<div class="col-span-2 flex justify-end opacity-50 group-hover:opacity-100 transition-opacity">
+<div class="flex gap-1">
+<button class="p-1 text-slate-400 hover:text-primary rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+<span class="material-symbols-outlined text-[18px]">drag_indicator</span>
+</button>
+<button class="p-1 text-slate-400 hover:text-red-500 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+<button class="mt-2 w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg text-slate-500 dark:text-slate-400 font-bold text-sm hover:border-primary hover:text-primary transition flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">add_circle</span>
+                                    创建新分类
+                                </button>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5 flex flex-col gap-8">
+<div class="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow-sm border border-border-light dark:border-border-dark flex flex-col gap-6">
+<div class="flex items-center gap-3 border-b border-slate-100 dark:border-slate-700/50 pb-4">
+<div class="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</div>
+<h3 class="text-base font-bold">输出偏好设置</h3>
+</div>
+<div class="flex flex-col gap-5">
+<label class="flex flex-col gap-2">
+<span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">语言风格</span>
+<select class="form-select w-full rounded-lg border border-slate-300 dark:border-[#324467] bg-slate-50 dark:bg-[#111722] px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary dark:text-white cursor-pointer">
+<option value="concise">简洁明了 (Concise)</option>
+<option value="detailed">详细描述 (Detailed)</option>
+<option value="creative">创意发散 (Creative)</option>
+</select>
+</label>
+<label class="flex flex-col gap-2">
+<span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">回复语言</span>
+<select class="form-select w-full rounded-lg border border-slate-300 dark:border-[#324467] bg-slate-50 dark:bg-[#111722] px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary dark:text-white cursor-pointer">
+<option value="auto">自动检测 (Auto)</option>
+<option value="zh-CN">简体中文</option>
+<option value="en-US">English</option>
+</select>
+</label>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
+<span>输出长度限制</span>
+<span>500 字</span>
+</div>
+<input class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-primary" max="2000" min="100" step="100" type="range" value="500"/>
+</div>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow-sm border border-border-light dark:border-border-dark flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-orange-500">dashboard_customize</span>
+<h3 class="text-base font-bold">快速分类模板</h3>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400">一键应用行业标准分类，这将覆盖当前设置。</p>
+<div class="grid grid-cols-1 gap-3 mt-1">
+<button class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary hover:bg-slate-50 dark:hover:bg-[#111722] transition group text-left">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary">敏捷开发 (Scrum)</span>
+<span class="text-[10px] text-slate-400">待办, 开发中, 测试, 完成</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary text-[18px]">arrow_forward</span>
+</button>
+<button class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary hover:bg-slate-50 dark:hover:bg-[#111722] transition group text-left">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary">创意脑暴 (Brainstorm)</span>
+<span class="text-[10px] text-slate-400">新点子, 需验证, 优质, 暂存</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="rounded-xl p-5 bg-[#192233] border border-primary/20 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent pointer-events-none"></div>
+<div class="relative z-10 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-primary font-bold text-sm">
+<span class="material-symbols-outlined text-[18px]">token</span>
+<span>AI 配额使用情况</span>
+</div>
+<span class="text-xs text-white font-mono bg-primary/20 px-2 py-0.5 rounded">Pro</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs text-slate-300">
+<span>本月已用</span>
+<span>34%</span>
+</div>
+<div class="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[34%] rounded-full"></div>
+</div>
+<div class="text-[10px] text-slate-500 text-right mt-1">17,000 / 50,000 Tokens</div>
+</div>
+<button class="text-xs font-bold text-white bg-primary hover:bg-primary-hover w-full py-2 rounded-lg transition mt-1 shadow-lg shadow-primary/20">
+                                    获取更多额度
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</body></html>

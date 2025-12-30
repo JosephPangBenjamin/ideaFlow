@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IdeaFlow - 个人任务</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "surface-dark": "#161b26",
+                        "border-dark": "#232f48",
+                        "text-secondary": "#92a4c9",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "Noto Sans SC", "sans-serif"],
+                        "body": ["Noto Sans SC", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101622; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #232f48; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #324467; 
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-hidden antialiased selection:bg-primary selection:text-white">
+<div class="flex h-screen w-full">
+<!-- Sidebar -->
+<aside class="w-64 h-full flex flex-col border-r border-border-dark bg-[#111722] shrink-0 transition-all duration-300">
+<!-- Logo Area -->
+<div class="h-16 flex items-center gap-3 px-6 border-b border-border-dark/50">
+<div class="size-8 bg-gradient-to-br from-blue-500 to-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]">all_inclusive</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight">IdeaFlow</h1>
+</div>
+<!-- Navigation -->
+<div class="flex-1 overflow-y-auto py-6 px-3 flex flex-col gap-1">
+<div class="px-3 pb-2">
+<p class="text-xs font-semibold text-text-secondary uppercase tracking-wider">工作台</p>
+</div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary group" href="#">
+<span class="material-symbols-outlined icon-fill">list_alt</span>
+<span class="text-sm font-medium">任务列表</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-surface-dark transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-white transition-colors">dashboard_customize</span>
+<span class="text-sm font-medium">自由画布</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-surface-dark transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-white transition-colors">group</span>
+<span class="text-sm font-medium">团队协作</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-surface-dark transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-white transition-colors">auto_awesome</span>
+<span class="text-sm font-medium">AI 总结</span>
+<span class="ml-auto bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded">NEW</span>
+</a>
+</div>
+<!-- User Profile Bottom -->
+<div class="p-4 border-t border-border-dark">
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-dark cursor-pointer transition-colors">
+<div class="size-9 rounded-full bg-cover bg-center border border-border-dark" data-alt="User avatar with a friendly face" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBiu219bbJ0Mf-j84BBefId275A33gBpAKdCGPmV-wQ05YxLRp_8W6dGWUa4zzmWnTl87vUtW_-wAZqKaJRnjcJC00810l2LPqufvaZe2x7heCzOifj_EtFJhZgp4bj3Bjt7TDk39Vq7cxt0XFqqu4ba-_nN9n5ln-qpXToA2IUzqu_kEV6PtO2qatyIk6PLLR-WHdUbxlqdTJADEcrtlNTb3yaxD65OU76lm_k282G0ktsH7_eVXS-WGHHY6_TO8nfZmoHavCy3yU');"></div>
+<div class="flex flex-col overflow-hidden">
+<p class="text-sm font-medium text-white truncate">李明轩</p>
+<p class="text-xs text-text-secondary truncate">产品经理</p>
+</div>
+<span class="material-symbols-outlined ml-auto text-text-secondary text-[18px]">more_vert</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="flex-1 flex flex-col h-full bg-background-dark relative overflow-hidden">
+<!-- Top Navbar (Search & Actions) -->
+<header class="h-16 border-b border-border-dark flex items-center justify-between px-6 bg-[#111722]/80 backdrop-blur-md sticky top-0 z-20">
+<!-- Search -->
+<div class="flex-1 max-w-lg">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+<span class="material-symbols-outlined text-text-secondary group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full p-2 pl-10 text-sm text-white bg-surface-dark border border-border-dark rounded-lg focus:ring-1 focus:ring-primary focus:border-primary placeholder-text-secondary transition-all" placeholder="搜索任务、想法或标签..." type="text"/>
+<div class="absolute inset-y-0 right-0 flex items-center pr-2">
+<kbd class="inline-flex items-center border border-border-dark rounded px-2 text-xs font-sans font-medium text-text-secondary">⌘ K</kbd>
+</div>
+</div>
+</div>
+<!-- Right Actions -->
+<div class="flex items-center gap-4 ml-6">
+<button class="relative p-2 text-text-secondary hover:text-white hover:bg-surface-dark rounded-lg transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-[#111722]"></span>
+</button>
+<button class="p-2 text-text-secondary hover:text-white hover:bg-surface-dark rounded-lg transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
+<div class="max-w-5xl mx-auto flex flex-col gap-6 pb-20">
+<!-- Page Heading & Actions -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h2 class="text-2xl font-bold text-white tracking-tight">个人任务</h2>
+<p class="text-text-secondary text-sm mt-1">管理您的日常待办事项和创意灵感</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark text-white rounded-lg hover:bg-border-dark transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[20px]">ios_share</span>
+                                导出
+                            </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-primary/25 text-sm font-medium">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                                新建任务
+                            </button>
+</div>
+</div>
+<!-- AI Summary Banner -->
+<div class="relative overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-r from-primary/20 to-surface-dark p-1">
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#111722]/60 backdrop-blur-sm p-4 rounded-lg">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-full bg-gradient-to-tr from-purple-500 to-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white">auto_awesome</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<p class="text-white font-bold">AI 智能总结</p>
+<p class="text-text-secondary text-sm">一键生成今日任务摘要，助你快速回顾重点。</p>
+</div>
+</div>
+<button class="px-4 py-2 bg-white text-primary text-sm font-bold rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap">
+                                立即生成
+                            </button>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="flex flex-wrap items-center gap-3">
+<!-- Status Filter -->
+<div class="relative">
+<button class="flex items-center gap-2 px-3 py-1.5 bg-surface-dark border border-border-dark rounded-lg text-sm text-white hover:border-text-secondary transition-colors">
+<span class="text-text-secondary">状态:</span>
+<span class="font-medium">未完成</span>
+<span class="material-symbols-outlined text-[16px] text-text-secondary">expand_more</span>
+</button>
+</div>
+<!-- Sort Filter -->
+<div class="relative">
+<button class="flex items-center gap-2 px-3 py-1.5 bg-surface-dark border border-border-dark rounded-lg text-sm text-white hover:border-text-secondary transition-colors">
+<span class="text-text-secondary">排序:</span>
+<span class="font-medium">创建时间</span>
+<span class="material-symbols-outlined text-[16px] text-text-secondary">sort</span>
+</button>
+</div>
+<!-- Tags Filter -->
+<div class="relative">
+<button class="flex items-center gap-2 px-3 py-1.5 bg-surface-dark border border-border-dark rounded-lg text-sm text-white hover:border-text-secondary transition-colors">
+<span class="text-text-secondary">标签:</span>
+<span class="font-medium">全部</span>
+<span class="material-symbols-outlined text-[16px] text-text-secondary">label</span>
+</button>
+</div>
+<div class="w-px h-6 bg-border-dark mx-1"></div>
+<!-- View Toggle -->
+<button class="p-1.5 text-white bg-surface-dark border border-border-dark rounded md:flex hidden hover:bg-border-dark transition-colors" title="列表视图">
+<span class="material-symbols-outlined text-[20px] icon-fill">view_list</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-white rounded md:flex hidden hover:bg-surface-dark transition-colors" title="看板视图">
+<span class="material-symbols-outlined text-[20px]">view_kanban</span>
+</button>
+</div>
+<!-- Task List -->
+<div class="flex flex-col gap-3">
+<!-- Task Item 1 (Active/High Priority) -->
+<div class="group relative flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-xl bg-surface-dark border border-border-dark hover:border-primary/50 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
+<!-- Left: Checkbox & Content -->
+<div class="flex flex-1 items-start gap-4">
+<label class="flex items-center mt-1 cursor-pointer relative">
+<input class="peer size-5 appearance-none rounded border border-text-secondary/50 bg-transparent checked:bg-primary checked:border-primary focus:ring-0 transition-colors" type="checkbox"/>
+<span class="material-symbols-outlined text-white absolute inset-0 pointer-events-none opacity-0 peer-checked:opacity-100 text-[18px] leading-none text-center pt-0.5">check</span>
+</label>
+<div class="flex flex-col gap-1.5 w-full">
+<div class="flex items-center gap-3 flex-wrap">
+<h3 class="text-base font-bold text-white group-hover:text-primary transition-colors cursor-pointer">完成Q3产品设计初稿</h3>
+<div class="flex gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                                                高优先级
+                                            </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                                设计
+                                            </span>
+</div>
+</div>
+<p class="text-sm text-text-secondary line-clamp-1 w-full max-w-2xl">
+                                        需要包含用户旅程图和核心功能界面的高保真原型，并针对移动端适配进行特别说明。
+                                    </p>
+<div class="flex items-center gap-4 text-xs text-text-secondary mt-1">
+<div class="flex items-center gap-1" title="截止日期">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+<span>10月24日</span>
+</div>
+<div class="flex items-center gap-1" title="最后修改">
+<span class="material-symbols-outlined text-[14px]">history</span>
+<span>2小时前</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Actions (Visible on hover or mobile) -->
+<div class="flex items-center gap-1 pl-4 md:border-l border-border-dark/50 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-text-secondary hover:text-white hover:bg-[#2a3655] rounded-lg transition-colors tooltip-trigger" title="添加到自由画布">
+<span class="material-symbols-outlined text-[20px]">gesture</span>
+</button>
+<button class="p-2 text-text-secondary hover:text-primary hover:bg-[#2a3655] rounded-lg transition-colors" title="编辑">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-2 text-text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="删除">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Task Item 2 -->
+<div class="group relative flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-xl bg-surface-dark border border-border-dark hover:border-primary/50 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
+<div class="flex flex-1 items-start gap-4">
+<label class="flex items-center mt-1 cursor-pointer relative">
+<input class="peer size-5 appearance-none rounded border border-text-secondary/50 bg-transparent checked:bg-primary checked:border-primary focus:ring-0 transition-colors" type="checkbox"/>
+<span class="material-symbols-outlined text-white absolute inset-0 pointer-events-none opacity-0 peer-checked:opacity-100 text-[18px] leading-none text-center pt-0.5">check</span>
+</label>
+<div class="flex flex-col gap-1.5 w-full">
+<div class="flex items-center gap-3 flex-wrap">
+<h3 class="text-base font-bold text-white group-hover:text-primary transition-colors cursor-pointer">竞品分析报告 - AI功能对比</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                            调研
+                                        </span>
+</div>
+<p class="text-sm text-text-secondary line-clamp-1 w-full max-w-2xl">
+                                        针对Notion、Miro等主要竞品的AI辅助功能进行深度横向对比，产出优劣势分析矩阵。
+                                    </p>
+<div class="flex items-center gap-4 text-xs text-text-secondary mt-1">
+<div class="flex items-center gap-1 text-red-400" title="已延期">
+<span class="material-symbols-outlined text-[14px] icon-fill">event_busy</span>
+<span>昨日截止</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1 pl-4 md:border-l border-border-dark/50 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-text-secondary hover:text-white hover:bg-[#2a3655] rounded-lg transition-colors" title="添加到自由画布">
+<span class="material-symbols-outlined text-[20px]">gesture</span>
+</button>
+<button class="p-2 text-text-secondary hover:text-primary hover:bg-[#2a3655] rounded-lg transition-colors" title="编辑">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-2 text-text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="删除">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Task Item 3 (Completed style but in unfinished list? User said filters. Assuming this is just a list example) -->
+<div class="group relative flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-xl bg-surface-dark border border-border-dark hover:border-primary/50 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
+<div class="flex flex-1 items-start gap-4">
+<label class="flex items-center mt-1 cursor-pointer relative">
+<input class="peer size-5 appearance-none rounded border border-text-secondary/50 bg-transparent checked:bg-primary checked:border-primary focus:ring-0 transition-colors" type="checkbox"/>
+<span class="material-symbols-outlined text-white absolute inset-0 pointer-events-none opacity-0 peer-checked:opacity-100 text-[18px] leading-none text-center pt-0.5">check</span>
+</label>
+<div class="flex flex-col gap-1.5 w-full">
+<div class="flex items-center gap-3 flex-wrap">
+<h3 class="text-base font-bold text-white group-hover:text-primary transition-colors cursor-pointer">整理团队周报</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+                                            管理
+                                        </span>
+</div>
+<p class="text-sm text-text-secondary line-clamp-1 w-full max-w-2xl">
+                                        汇总本周开发进度与下周计划，准备周一早会的演示文档。
+                                    </p>
+<div class="flex items-center gap-4 text-xs text-text-secondary mt-1">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+<span>10月27日</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1 pl-4 md:border-l border-border-dark/50 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-text-secondary hover:text-white hover:bg-[#2a3655] rounded-lg transition-colors" title="添加到自由画布">
+<span class="material-symbols-outlined text-[20px]">gesture</span>
+</button>
+<button class="p-2 text-text-secondary hover:text-primary hover:bg-[#2a3655] rounded-lg transition-colors" title="编辑">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-2 text-text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="删除">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Task Item 4 -->
+<div class="group relative flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-xl bg-surface-dark border border-border-dark hover:border-primary/50 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
+<div class="flex flex-1 items-start gap-4">
+<label class="flex items-center mt-1 cursor-pointer relative">
+<input class="peer size-5 appearance-none rounded border border-text-secondary/50 bg-transparent checked:bg-primary checked:border-primary focus:ring-0 transition-colors" type="checkbox"/>
+<span class="material-symbols-outlined text-white absolute inset-0 pointer-events-none opacity-0 peer-checked:opacity-100 text-[18px] leading-none text-center pt-0.5">check</span>
+</label>
+<div class="flex flex-col gap-1.5 w-full">
+<div class="flex items-center gap-3 flex-wrap">
+<h3 class="text-base font-bold text-white group-hover:text-primary transition-colors cursor-pointer">更新设计系统 Token</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                            设计
+                                        </span>
+</div>
+<p class="text-sm text-text-secondary line-clamp-1 w-full max-w-2xl">
+                                        同步最新的品牌色板到Figma库，并通知开发团队更新Tailwind配置。
+                                    </p>
+<div class="flex items-center gap-4 text-xs text-text-secondary mt-1">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+<span>10月30日</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1 pl-4 md:border-l border-border-dark/50 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-text-secondary hover:text-white hover:bg-[#2a3655] rounded-lg transition-colors" title="添加到自由画布">
+<span class="material-symbols-outlined text-[20px]">gesture</span>
+</button>
+<button class="p-2 text-text-secondary hover:text-primary hover:bg-[#2a3655] rounded-lg transition-colors" title="编辑">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-2 text-text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="删除">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Empty State / Load More Placeholder -->
+<div class="flex justify-center mt-4">
+<button class="text-sm text-text-secondary hover:text-primary transition-colors flex items-center gap-1">
+                            加载更多任务
+                            <span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Floating Add Button (Mobile mostly, but good for quick access) -->
+<div class="absolute bottom-8 right-8 md:hidden">
+<button class="size-14 bg-primary rounded-full shadow-lg shadow-primary/40 text-white flex items-center justify-center hover:bg-blue-600 transition-all transform hover:scale-105">
+<span class="material-symbols-outlined text-[28px]">add</span>
+</button>
+</div>
+</main>
+</div>
+</body></html>
