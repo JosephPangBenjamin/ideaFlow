@@ -1,0 +1,18 @@
+{
+    "name": "@ideaflow/shared",
+    "version": "0.0.1",
+    "private": true,
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "scripts": {
+        "lint": "eslint src",
+        "format": "prettier --write \"src/**/*.ts\"",
+        "test": "echo \"No tests yet\""
+    },
+    "devDependencies": {
+        "framer-motion": "^12.23.26",
+        "globals": "^16.5.0",
+        "typescript": "^5.6.2",
+        "typescript-eslint": "^8.46.4"
+    }
+}

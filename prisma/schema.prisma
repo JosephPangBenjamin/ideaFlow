@@ -1,0 +1,139 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  phone     String?  @unique
+  password  String
+  nickname  String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ideas           Idea[]
+  tasks           Task[]
+  canvases        Canvas[]
+  analyticsEvents AnalyticsEvent[]
+
+  @@map("users")
+}
+
+model Idea {
+  id        String   @id @default(cuid())
+  content   String
+  source    Json?    // { type: 'link'|'image'|'text', url?, title?, thumbnail?, note? }
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user  User   @relation(fields: [userId], references: [id])
+  tasks Task[]
+  nodes CanvasNode[]
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("ideas")
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(todo)
+  category    String?
+  dueDate     DateTime?  @map("due_date")
+  ideaId      String?    @map("idea_id")
+  userId      String     @map("user_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  deletedAt   DateTime?  @map("deleted_at")
+
+  user User  @relation(fields: [userId], references: [id])
+  idea Idea? @relation(fields: [ideaId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  done
+}
+
+model Canvas {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user        User              @relation(fields: [userId], references: [id])
+  nodes       CanvasNode[]
+  connections CanvasConnection[]
+
+  @@index([userId])
+  @@map("canvases")
+}
+
+model CanvasNode {
+  id       String  @id @default(cuid())
+  canvasId String  @map("canvas_id")
+  ideaId   String? @map("idea_id")
+  x        Float
+  y        Float
+  width    Float   @default(200)
+  height   Float   @default(100)
+  content  String?
+
+  canvas          Canvas             @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+  idea            Idea?              @relation(fields: [ideaId], references: [id])
+  fromConnections CanvasConnection[] @relation("FromNode")
+  toConnections   CanvasConnection[] @relation("ToNode")
+
+  @@index([canvasId])
+  @@map("canvas_nodes")
+}
+
+model CanvasConnection {
+  id         String  @id @default(cuid())
+  canvasId   String  @map("canvas_id")
+  fromNodeId String  @map("from_node_id")
+  toNodeId   String  @map("to_node_id")
+  label      String?
+
+  canvas   Canvas     @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+  fromNode CanvasNode @relation("FromNode", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNode   CanvasNode @relation("ToNode", fields: [toNodeId], references: [id], onDelete: Cascade)
+
+  @@index([canvasId])
+  @@map("canvas_connections")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  eventName String   @map("event_name")
+  userId    String?  @map("user_id")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([eventName])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("analytics_events")
+}

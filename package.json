@@ -1,0 +1,42 @@
+{
+  "name": "ideaflow",
+  "version": "0.0.1",
+  "private": true,
+  "description": "IdeaFlow - Capture ideas, organize on canvas, convert to tasks",
+  "license": "MIT",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter './apps/*' dev",
+    "build": "pnpm --filter './apps/*' build",
+    "lint": "pnpm --filter './apps/*' --filter './packages/*' lint",
+    "format": "pnpm --filter './apps/*' --filter './packages/*' format",
+    "test": "pnpm --filter './apps/*' --filter './packages/*' test",
+    "test:web": "pnpm --filter web test",
+    "test:api": "pnpm --filter api test",
+    "test:e2e": "pnpm --filter web test:e2e",
+    "db:generate": "pnpm --filter api db:generate",
+    "db:push": "pnpm --filter api db:push",
+    "db:migrate": "pnpm --filter api db:migrate",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@prisma/client": "5.22.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "prisma": "5.22.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yaml,yml}": [
+      "prettier --write"
+    ]
+  }
+}
