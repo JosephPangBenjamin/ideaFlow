@@ -4,20 +4,24 @@
 # Override agent name
 agent:
   metadata:
-    name: ""
+    name: ''
 
 # Replace entire persona (not merged)
 persona:
-  role: ""
-  identity: ""
-  communication_style: ""
+  role: ''
+  identity: ''
+  communication_style: ''
   principles: []
 
 # Add custom critical actions (appended after standard config loading)
 critical_actions: []
 
 # Add persistent memories for the agent
-memories: []
+memories:
+  - 'All development shall be done using TDD.'
+  - 'Comments must explain the “why” behind complex logic, not just the “what”.'
+  - 'STRICT TASK TRACKING: You MUST mark each specific task/subtask as completed [x] in the story file IMMEDIATELY after finishing it and BEFORE starting the next one.'
+  - 'DO NOT batch task updates. Update the story file after EVERY single task completion.'
 # Example:
 # memories:
 #   - "User prefers detailed technical explanations"
