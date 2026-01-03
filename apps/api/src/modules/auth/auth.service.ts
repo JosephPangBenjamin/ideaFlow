@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, LoginDto } from './dto';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 interface UserPayload {
   id: string;
@@ -16,7 +17,8 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly analyticsService: AnalyticsService
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -48,6 +50,12 @@ export class AuthService {
       username: user.username,
       tokenVersion: (user as any).tokenVersion,
     });
+
+    // Track registration event
+    void this.analyticsService.track(
+      { eventName: 'user_registered', metadata: { username: user.username } },
+      user.id
+    );
 
     return {
       data: {
@@ -90,6 +98,12 @@ export class AuthService {
       username: user.username,
       tokenVersion: (user as any).tokenVersion,
     });
+
+    // Track login event
+    void this.analyticsService.track(
+      { eventName: 'user_logged_in', metadata: { username: user.username } },
+      user.id
+    );
 
     return {
       data: {

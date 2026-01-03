@@ -51,7 +51,7 @@ development_status:
   1-4-user-logout: done
   1-5-unauthorized-access-protection: done
   1-6-user-profile-management: done
-  1-7-analytics-infrastructure: backlog
+  1-7-analytics-infrastructure: done
   epic-1-retrospective: optional
 
   # ===========================================
