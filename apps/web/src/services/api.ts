@@ -8,6 +8,22 @@ export const api: AxiosInstance = axios.create({
   withCredentials: true,
 });
 
+// Request interceptor to attach token
+api.interceptors.request.use((config) => {
+  const authData = localStorage.getItem('ideaflow-auth');
+  if (authData) {
+    try {
+      const { accessToken } = JSON.parse(authData);
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
+  return config;
+});
+
 export const createOnResponseError = (client: AxiosInstance) => async (error: AxiosError) => {
   const originalRequest = error.config;
   if (error.response?.status === 401 && originalRequest && !(originalRequest as any)._retry) {
@@ -21,9 +37,29 @@ export const createOnResponseError = (client: AxiosInstance) => async (error: Ax
     (originalRequest as any)._retry = true;
 
     try {
-      await client.post('/auth/refresh');
+      const response = await client.post('/auth/refresh');
+      const { accessToken } = response.data;
+
+      // Save new token to localStorage
+      const authData = localStorage.getItem('ideaflow-auth');
+      if (authData) {
+        try {
+          const parsed = JSON.parse(authData);
+          localStorage.setItem('ideaflow-auth', JSON.stringify({ ...parsed, accessToken }));
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+
+      // Retry original request with new token
+      if (originalRequest.headers) {
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      }
       return client(originalRequest);
     } catch (refreshError) {
+      // Clear auth on refresh failure
+      localStorage.removeItem('ideaflow-auth');
+      window.location.hash = '/login';
       return Promise.reject(refreshError);
     }
   }

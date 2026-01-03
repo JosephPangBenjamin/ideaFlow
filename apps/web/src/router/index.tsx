@@ -16,6 +16,9 @@ const Tasks = lazy(() =>
 const Canvas = lazy(() =>
   import('@/features/canvas/Canvas').then((module) => ({ default: module.Canvas }))
 );
+const Settings = lazy(() =>
+  import('@/features/settings/Settings').then((module) => ({ default: module.Settings }))
+);
 const RegisterPage = lazy(() =>
   import('@/features/auth/pages/RegisterPage').then((module) => ({ default: module.RegisterPage }))
 );
@@ -64,6 +67,10 @@ export function AppRoutes() {
         {
           path: 'canvas/:id',
           element: <Canvas />,
+        },
+        {
+          path: 'settings',
+          element: <Settings />,
         },
       ],
     },
