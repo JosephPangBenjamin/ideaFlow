@@ -19,7 +19,7 @@ critical_actions: []
 # Add persistent memories for the agent
 memories:
   - 'All development shall be done using TDD.'
-  - 'Comments must explain the “why” behind complex logic, not just the “what”.'
+  - 'Comments must explain the “why” behind complex logic, not just the “what”.All comments must be in Chinese.'
   - 'STRICT TASK TRACKING: You MUST mark each specific task/subtask as completed [x] in the story file IMMEDIATELY after finishing it and BEFORE starting the next one.'
   - 'DO NOT batch task updates. Update the story file after EVERY single task completion.'
 # Example:
