@@ -58,12 +58,12 @@ development_status:
   # Epic 2: 想法捕捉与管理 (Phase 1)
   # FRs: FR5, FR6, FR7, FR8, FR9, FR10, FR27
   # ===========================================
-  epic-2: backlog
-  2-1-quick-idea-capture: backlog
-  2-2-idea-source-context: backlog
-  2-3-idea-list-view: backlog
-  2-4-edit-idea: backlog
-  2-5-delete-idea: backlog
+  epic-2: in-progress
+  2-1-quick-idea-capture: done
+  2-2-idea-source-context: done
+  2-3-idea-list-view: done
+  2-4-edit-idea: done
+  2-5-delete-idea: done
   epic-2-retrospective: optional
 
   # ===========================================

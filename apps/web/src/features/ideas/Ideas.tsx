@@ -1,40 +1,66 @@
-import { Card } from '@arco-design/web-react';
+import { useState } from 'react';
+import { Drawer } from '@arco-design/web-react';
 import { motion } from 'framer-motion';
-import { IconBulb } from '@arco-design/web-react/icon';
+import { fadeInUp, staggerContainer } from '@/utils/motion';
+import { IdeaList } from './components/IdeaList';
+import { QuickCapture } from './components/QuickCapture';
+import { QuickCaptureFAB } from './components/QuickCaptureFAB';
+import { IdeaDetail } from './components/IdeaDetail';
+import { Idea } from './types';
 
 export function Ideas() {
-  const defaultIdeas = [
-    { id: 1, title: '想法一', content: '这是一个绝妙的创意，需要进一步细化。' },
-    { id: 2, title: '想法二', content: '关于提升效率的新构思，可以尝试集成 AI。' },
-  ];
+  const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
+
+  const handleItemClick = (idea: Idea) => {
+    setSelectedIdea(idea);
+  };
 
   return (
-    <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {defaultIdeas.map((idea, index) => (
-          <motion.div
-            key={idea.id}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card
-              className="bg-slate-800/50 backdrop-blur-sm border-slate-700/50 rounded-2xl hover:border-blue-500/50 transition-colors"
-              bordered={false}
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center shrink-0">
-                  <IconBulb className="text-blue-400 text-xl" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{idea.title}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed">{idea.content}</p>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
+    <motion.div variants={staggerContainer} initial="hidden" animate="show" className="w-full">
+      {/* Header Section aligned with Dashboard style */}
+      <div className="mb-10 flex items-end justify-between">
+        <motion.div variants={fadeInUp}>
+          <h1 className="text-4xl font-heading font-bold text-white tracking-tight">想法流</h1>
+          <p className="text-slate-400 mt-2 text-lg">在这里捕捉、整理和链接您的每一个灵感碎片。</p>
+        </motion.div>
+
+        <motion.div
+          variants={fadeInUp}
+          className="hidden md:flex items-center gap-4 text-slate-300 bg-white/5 px-4 py-2 rounded-full border border-white/5 backdrop-blur-sm"
+        >
+          <span>💡 灵感爆发中</span>
+        </motion.div>
       </div>
-    </div>
+
+      <IdeaList onItemClick={handleItemClick} />
+
+      <QuickCapture />
+      <QuickCaptureFAB />
+
+      <Drawer
+        width={500}
+        title={<span className="text-white font-semibold">想法详情</span>}
+        visible={!!selectedIdea}
+        onOk={() => setSelectedIdea(null)}
+        onCancel={() => setSelectedIdea(null)}
+        footer={null}
+        className="bg-slate-900"
+        headerStyle={{
+          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          backgroundColor: '#0f172a',
+        }}
+        maskClosable={true}
+      >
+        <div className="text-slate-200">
+          {selectedIdea && (
+            <IdeaDetail
+              idea={selectedIdea}
+              onUpdate={setSelectedIdea}
+              onDelete={() => setSelectedIdea(null)}
+            />
+          )}
+        </div>
+      </Drawer>
+    </motion.div>
   );
 }

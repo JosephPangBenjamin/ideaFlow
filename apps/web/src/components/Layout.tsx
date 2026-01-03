@@ -15,6 +15,9 @@ import { useAtom } from 'jotai';
 import { isSidebarOpenAtom } from '@/store/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { spring, hoverAnimation, tapAnimation } from '@/utils/motion';
+import { QuickCapture } from '@/features/ideas/components/QuickCapture';
+import { QuickCaptureFAB } from '@/features/ideas/components/QuickCaptureFAB';
+import { useQuickCaptureHotkey } from '@/features/ideas/hooks/useQuickCaptureHotkey';
 
 const navItems = [
   { path: '/dashboard', icon: IconHome, label: '仪表盘' },
@@ -28,6 +31,7 @@ export function Layout() {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useAtom(isSidebarOpenAtom);
   const { logout, user } = useAuth();
+  useQuickCaptureHotkey();
 
   const handleLogout = async () => {
     await logout();
@@ -200,6 +204,8 @@ export function Layout() {
           </motion.div>
         </div>
       </main>
+      <QuickCapture />
+      <QuickCaptureFAB />
     </div>
   );
 }
