@@ -1,7 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CanvasesService } from './canvases.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { CreateConnectionDto } from './dto/create-connection.dto';
+import { UpdateConnectionDto } from './dto/update-connection.dto';
 
 describe('CanvasesService', () => {
   let service: CanvasesService;
@@ -23,6 +25,13 @@ describe('CanvasesService', () => {
               count: jest.fn(),
             },
             canvasNode: {
+              create: jest.fn(),
+              findUnique: jest.fn(),
+              findMany: jest.fn(),
+              update: jest.fn(),
+              delete: jest.fn(),
+            },
+            canvasConnection: {
               create: jest.fn(),
               findUnique: jest.fn(),
               findMany: jest.fn(),
@@ -384,6 +393,168 @@ describe('CanvasesService', () => {
         orderBy: { createdAt: 'asc' },
       });
       expect(result).toEqual({ data: expectedNodes });
+    });
+  });
+
+  describe('createConnection', () => {
+    it('should create a connection between two nodes', async () => {
+      const userId = 'user-1';
+      const canvasId = 'canvas-1';
+      const createDto: CreateConnectionDto = {
+        fromNodeId: 'node-1',
+        toNodeId: 'node-2',
+        label: 'Test label',
+      };
+      const existingCanvas = { id: canvasId, name: '画布', userId, nodes: [] };
+      const existingFromNode = { id: 'node-1', canvasId, userId };
+      const existingToNode = { id: 'node-2', canvasId, userId };
+      const expectedConnection = { id: 'connection-1', ...createDto, canvasId };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(existingCanvas);
+      (prisma.canvasNode.findUnique as jest.Mock).mockResolvedValueOnce(existingFromNode);
+      (prisma.canvasNode.findUnique as jest.Mock).mockResolvedValueOnce(existingToNode);
+      (prisma.canvasConnection.create as jest.Mock).mockResolvedValue(expectedConnection);
+
+      const result = await service.createConnection(userId, canvasId, createDto);
+
+      expect(prisma.canvasConnection.create).toHaveBeenCalledWith({
+        data: {
+          canvasId,
+          ...createDto,
+        },
+      });
+      expect(result).toEqual({ data: expectedConnection });
+    });
+
+    it('should reject self-loop connections', async () => {
+      const userId = 'user-1';
+      const canvasId = 'canvas-1';
+      const createDto: CreateConnectionDto = {
+        fromNodeId: 'node-1',
+        toNodeId: 'node-1',
+      };
+      const existingCanvas = { id: canvasId, name: '画布', userId, nodes: [] };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(existingCanvas);
+
+      await expect(service.createConnection(userId, canvasId, createDto)).rejects.toThrow(
+        BadRequestException
+      );
+    });
+
+    it('should throw NotFoundException if node does not exist', async () => {
+      const userId = 'user-1';
+      const canvasId = 'canvas-1';
+      const createDto: CreateConnectionDto = {
+        fromNodeId: 'node-1',
+        toNodeId: 'node-2',
+      };
+      const existingCanvas = { id: canvasId, name: '画布', userId, nodes: [] };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(existingCanvas);
+      (prisma.canvasNode.findUnique as jest.Mock).mockResolvedValueOnce(null);
+
+      await expect(service.createConnection(userId, canvasId, createDto)).rejects.toThrow(
+        NotFoundException
+      );
+    });
+  });
+
+  describe('updateConnection', () => {
+    it('should update connection label', async () => {
+      const userId = 'user-1';
+      const connectionId = 'connection-1';
+      const updateDto: UpdateConnectionDto = { label: 'Updated label' };
+      const existingConnection = {
+        id: connectionId,
+        canvasId: 'canvas-1',
+        fromNodeId: 'node-1',
+        toNodeId: 'node-2',
+        canvas: { userId },
+      };
+      const updatedConnection = { ...existingConnection, ...updateDto };
+
+      (prisma.canvasConnection.findUnique as jest.Mock).mockResolvedValue(existingConnection);
+      (prisma.canvasConnection.update as jest.Mock).mockResolvedValue(updatedConnection);
+
+      const result = await service.updateConnection(userId, connectionId, updateDto);
+
+      expect(prisma.canvasConnection.update).toHaveBeenCalledWith({
+        where: { id: connectionId },
+        data: updateDto,
+      });
+      expect(result).toEqual({ data: updatedConnection });
+    });
+
+    it('should throw NotFoundException if connection does not exist', async () => {
+      const userId = 'user-1';
+      const connectionId = 'connection-1';
+      const updateDto: UpdateConnectionDto = { label: 'test' };
+
+      (prisma.canvasConnection.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.updateConnection(userId, connectionId, updateDto)).rejects.toThrow(
+        NotFoundException
+      );
+    });
+  });
+
+  describe('removeConnection', () => {
+    it('should delete connection', async () => {
+      const userId = 'user-1';
+      const connectionId = 'connection-1';
+      const existingConnection = {
+        id: connectionId,
+        canvasId: 'canvas-1',
+        canvas: { userId },
+      };
+
+      (prisma.canvasConnection.findUnique as jest.Mock).mockResolvedValue(existingConnection);
+      (prisma.canvasConnection.delete as jest.Mock).mockResolvedValue(existingConnection);
+
+      const result = await service.removeConnection(userId, connectionId);
+
+      expect(prisma.canvasConnection.delete).toHaveBeenCalledWith({
+        where: { id: connectionId },
+      });
+      expect(result).toEqual({ message: '连线已删除' });
+    });
+
+    it('should throw NotFoundException if connection does not exist', async () => {
+      const userId = 'user-1';
+      const connectionId = 'connection-1';
+
+      (prisma.canvasConnection.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.removeConnection(userId, connectionId)).rejects.toThrow(
+        NotFoundException
+      );
+    });
+  });
+
+  describe('getConnectionsForCanvas', () => {
+    it('should return all connections for a canvas', async () => {
+      const userId = 'user-1';
+      const canvasId = 'canvas-1';
+      const existingCanvas = { id: canvasId, name: '画布', userId, nodes: [] };
+      const expectedConnections = [
+        { id: 'connection-1', canvasId, fromNodeId: 'node-1', toNodeId: 'node-2' },
+        { id: 'connection-2', canvasId, fromNodeId: 'node-2', toNodeId: 'node-3' },
+      ];
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(existingCanvas);
+      (prisma.canvasConnection.findMany as jest.Mock).mockResolvedValue(expectedConnections);
+
+      const result = await service.getConnectionsForCanvas(userId, canvasId);
+
+      expect(prisma.canvasConnection.findMany).toHaveBeenCalledWith({
+        where: { canvasId },
+        include: {
+          fromNode: true,
+          toNode: true,
+        },
+      });
+      expect(result).toEqual({ data: expectedConnections });
     });
   });
 });

@@ -1,9 +1,16 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCanvasDto } from './dto/create-canvas.dto';
 import { UpdateCanvasDto } from './dto/update-canvas.dto';
 import { CreateNodeDto } from './dto/create-node.dto';
 import { UpdateNodeDto } from './dto/update-node.dto';
+import { CreateConnectionDto } from './dto/create-connection.dto';
+import { UpdateConnectionDto } from './dto/update-connection.dto';
 
 @Injectable()
 export class CanvasesService {
@@ -218,5 +225,114 @@ export class CanvasesService {
     });
 
     return { data: nodes };
+  }
+
+  // Connection CRUD operations
+  async createConnection(
+    userId: string,
+    canvasId: string,
+    createConnectionDto: CreateConnectionDto
+  ) {
+    // Verify canvas ownership
+    await this.findOne(userId, canvasId);
+
+    // Prevent self-loop
+    if (createConnectionDto.fromNodeId === createConnectionDto.toNodeId) {
+      throw new BadRequestException('Cannot connect node to itself');
+    }
+
+    // Verify both nodes exist and belong to the canvas
+    const [fromNode, toNode] = await Promise.all([
+      this.prisma.canvasNode.findUnique({
+        where: { id: createConnectionDto.fromNodeId },
+        include: { canvas: true },
+      }),
+      this.prisma.canvasNode.findUnique({
+        where: { id: createConnectionDto.toNodeId },
+        include: { canvas: true },
+      }),
+    ]);
+
+    if (!fromNode || !toNode) {
+      throw new NotFoundException('One or both nodes do not exist');
+    }
+
+    if (fromNode.canvasId !== canvasId || toNode.canvasId !== canvasId) {
+      throw new ForbiddenException('Cannot access nodes from this canvas');
+    }
+
+    // Unique constraint will be enforced by database
+    const connection = await this.prisma.canvasConnection.create({
+      data: {
+        canvasId,
+        fromNodeId: createConnectionDto.fromNodeId,
+        toNodeId: createConnectionDto.toNodeId,
+        label: createConnectionDto.label,
+      },
+    });
+
+    return { data: connection };
+  }
+
+  async updateConnection(
+    userId: string,
+    connectionId: string,
+    updateConnectionDto: UpdateConnectionDto
+  ) {
+    const connection = await this.prisma.canvasConnection.findUnique({
+      where: { id: connectionId },
+      include: { canvas: true },
+    });
+
+    if (!connection) {
+      throw new NotFoundException('Connection does not exist');
+    }
+
+    if (connection.canvas.userId !== userId) {
+      throw new ForbiddenException('Cannot access this connection');
+    }
+
+    const updated = await this.prisma.canvasConnection.update({
+      where: { id: connectionId },
+      data: updateConnectionDto,
+    });
+
+    return { data: updated };
+  }
+
+  async removeConnection(userId: string, connectionId: string) {
+    const connection = await this.prisma.canvasConnection.findUnique({
+      where: { id: connectionId },
+      include: { canvas: true },
+    });
+
+    if (!connection) {
+      throw new NotFoundException('Connection does not exist');
+    }
+
+    if (connection.canvas.userId !== userId) {
+      throw new ForbiddenException('Cannot access this connection');
+    }
+
+    await this.prisma.canvasConnection.delete({
+      where: { id: connectionId },
+    });
+
+    return { message: '连线已删除' };
+  }
+
+  async getConnectionsForCanvas(userId: string, canvasId: string) {
+    // Verify canvas ownership
+    await this.findOne(userId, canvasId);
+
+    const connections = await this.prisma.canvasConnection.findMany({
+      where: { canvasId },
+      include: {
+        fromNode: true,
+        toNode: true,
+      },
+    });
+
+    return { data: connections };
   }
 }

@@ -1,4 +1,4 @@
-import { Group, Rect, Text } from 'react-konva';
+import { Group, Rect, Text, Circle } from 'react-konva';
 import { CanvasNode as CanvasNodeType } from '../services/canvas.service';
 
 interface CanvasNodeProps {
@@ -6,29 +6,93 @@ interface CanvasNodeProps {
   isSelected?: boolean;
   onSelect?: (nodeId: string) => void;
   onDragEnd?: (nodeId: string, x: number, y: number) => void;
+  onConnectionStart?: (nodeId: string) => void;
+  isConnectingFrom?: boolean;
 }
 
-export function CanvasNode({ node, isSelected = false, onSelect, onDragEnd }: CanvasNodeProps) {
-  // Get idea summary (first 50 characters)
-  const ideaSummary = node.idea?.content
-    ? node.idea.content.substring(0, 50) + (node.idea.content.length > 50 ? '...' : '')
-    : node.content || '空节点';
-
+export function CanvasNode({
+  node,
+  isSelected = false,
+  onSelect,
+  onDragEnd,
+  onConnectionStart,
+  isConnectingFrom = false,
+}: CanvasNodeProps) {
   const handleDragEnd = (e: any) => {
     const newX = e.target.x();
     const newY = e.target.y();
     onDragEnd?.(node.id, newX, newY);
   };
 
+  const handleConnectionStart = () => {
+    onConnectionStart?.(node.id);
+  };
+
+  const getHandlePosition = (handle: 'top' | 'bottom' | 'left' | 'right') => {
+    const { x, y, width, height } = node;
+    switch (handle) {
+      case 'top':
+        return { x: x + width / 2, y: y };
+      case 'bottom':
+        return { x: x + width / 2, y: y + height };
+      case 'left':
+        return { x: x, y: y + height / 2 };
+      case 'right':
+        return { x: x + width, y: y + height / 2 };
+    }
+  };
+
   return (
     <Group
       x={node.x}
       y={node.y}
-      draggable
+      draggable={!isConnectingFrom}
       onClick={() => onSelect?.(node.id)}
       onTap={() => onSelect?.(node.id)}
       onDragEnd={handleDragEnd}
     >
+      {/* Connection handles */}
+      {!isConnectingFrom && (
+        <>
+          <Circle
+            x={getHandlePosition('top').x}
+            y={getHandlePosition('top').y}
+            radius={6}
+            fill="#3b82f6"
+            opacity={0.5}
+            onMouseDown={handleConnectionStart}
+            listening={false}
+          />
+          <Circle
+            x={getHandlePosition('bottom').x}
+            y={getHandlePosition('bottom').y}
+            radius={6}
+            fill="#3b82f6"
+            opacity={0.5}
+            onMouseDown={handleConnectionStart}
+            listening={false}
+          />
+          <Circle
+            x={getHandlePosition('left').x}
+            y={getHandlePosition('left').y}
+            radius={6}
+            fill="#3b82f6"
+            opacity={0.5}
+            onMouseDown={handleConnectionStart}
+            listening={false}
+          />
+          <Circle
+            x={getHandlePosition('right').x}
+            y={getHandlePosition('right').y}
+            radius={6}
+            fill="#3b82f6"
+            opacity={0.5}
+            onMouseDown={handleConnectionStart}
+            listening={false}
+          />
+        </>
+      )}
+
       {/* Background */}
       <Rect
         width={node.width}
@@ -42,17 +106,18 @@ export function CanvasNode({ node, isSelected = false, onSelect, onDragEnd }: Ca
         shadowOpacity={0.3}
         shadowOffset={{ x: 2, y: 2 }}
       />
+
       {/* Text content */}
       <Text
-        text={ideaSummary}
+        text={node.content || '空节点'}
         fill="#e2e8f0"
         fontSize={14}
         fontFamily="system-ui, -apple-system, sans-serif"
         padding={12}
         width={node.width - 24}
         height={node.height - 24}
-        align="left"
-        verticalAlign="top"
+        align="center"
+        verticalAlign="middle"
         wrap="word"
         ellipsis
       />

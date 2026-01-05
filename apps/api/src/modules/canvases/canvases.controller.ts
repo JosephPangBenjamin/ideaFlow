@@ -17,9 +17,11 @@ import { CreateCanvasDto } from './dto/create-canvas.dto';
 import { UpdateCanvasDto } from './dto/update-canvas.dto';
 import { CreateNodeDto } from './dto/create-node.dto';
 import { UpdateNodeDto } from './dto/update-node.dto';
+import { CreateConnectionDto } from './dto/create-connection.dto';
+import { UpdateConnectionDto } from './dto/update-connection.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller('canvases')
+@Controller('ideaFlow/api/v1/canvases')
 export class CanvasesController {
   constructor(private readonly canvasesService: CanvasesService) {}
 
@@ -91,5 +93,39 @@ export class CanvasesController {
   @HttpCode(HttpStatus.OK)
   removeNode(@Request() req: any, @Param('nodeId') nodeId: string) {
     return this.canvasesService.removeNode(req.user.id, nodeId);
+  }
+
+  // Connection endpoints
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/connections')
+  createConnection(
+    @Request() req: any,
+    @Param('id') canvasId: string,
+    @Body() createConnectionDto: CreateConnectionDto
+  ) {
+    return this.canvasesService.createConnection(req.user.id, canvasId, createConnectionDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/connections')
+  getConnections(@Request() req: any, @Param('id') canvasId: string) {
+    return this.canvasesService.getConnectionsForCanvas(req.user.id, canvasId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('connections/:connectionId')
+  updateConnection(
+    @Request() req: any,
+    @Param('connectionId') connectionId: string,
+    @Body() updateConnectionDto: UpdateConnectionDto
+  ) {
+    return this.canvasesService.updateConnection(req.user.id, connectionId, updateConnectionDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('connections/:connectionId')
+  @HttpCode(HttpStatus.OK)
+  removeConnection(@Request() req: any, @Param('connectionId') connectionId: string) {
+    return this.canvasesService.removeConnection(req.user.id, connectionId);
   }
 }

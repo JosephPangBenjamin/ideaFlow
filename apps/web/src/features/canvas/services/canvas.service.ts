@@ -24,6 +24,18 @@ export interface CanvasNode {
   updatedAt: string;
 }
 
+export interface CanvasConnection {
+  id: string;
+  canvasId: string;
+  fromNodeId: string;
+  toNodeId: string;
+  label: string | null;
+  fromNode?: CanvasNode;
+  toNode?: CanvasNode;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CreateCanvasDto {
   name?: string;
 }
@@ -45,6 +57,16 @@ export interface UpdateNodeDto {
   y?: number;
   width?: number;
   height?: number;
+}
+
+export interface CreateConnectionDto {
+  fromNodeId: string;
+  toNodeId: string;
+  label?: string;
+}
+
+export interface UpdateConnectionDto {
+  label?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -110,5 +132,32 @@ export const updateNode = async (
 
 export const deleteNode = async (nodeId: string): Promise<{ message: string }> => {
   const response = await api.delete(`/canvases/nodes/${nodeId}`);
+  return response.data;
+};
+
+// Connection CRUD
+export const addConnection = async (
+  canvasId: string,
+  data: CreateConnectionDto
+): Promise<{ data: CanvasConnection }> => {
+  const response = await api.post(`/canvases/${canvasId}/connections`, data);
+  return response.data;
+};
+
+export const getConnections = async (canvasId: string): Promise<{ data: CanvasConnection[] }> => {
+  const response = await api.get(`/canvases/${canvasId}/connections`);
+  return response.data;
+};
+
+export const updateConnection = async (
+  connectionId: string,
+  data: UpdateConnectionDto
+): Promise<{ data: CanvasConnection }> => {
+  const response = await api.patch(`/canvases/connections/${connectionId}`, data);
+  return response.data;
+};
+
+export const deleteConnection = async (connectionId: string): Promise<{ message: string }> => {
+  const response = await api.delete(`/canvases/connections/${connectionId}`);
   return response.data;
 };
