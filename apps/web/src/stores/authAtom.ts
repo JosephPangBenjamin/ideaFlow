@@ -6,31 +6,45 @@ interface User {
   username: string;
 }
 
-interface AuthState {
+export interface AuthState {
   user: User | null;
   accessToken: string | null;
   isAuthenticated: boolean;
   isHydrated: boolean;
 }
 
-const initialState: AuthState = {
+// Basic atom with storage - only persist user, token and auth status
+const baseAuthAtom = atomWithStorage<Omit<AuthState, 'isHydrated'>>('ideaflow-auth', {
   user: null,
   accessToken: null,
   isAuthenticated: false,
-  isHydrated: true,
-};
+});
 
-// Basic atom with storage
-const baseAuthAtom = atomWithStorage<AuthState>('ideaflow-auth', initialState);
+// Loading state atom - stays false until first mount/hydration
+const hydrationAtom = atom(false);
 
-// Wrap to handle hydration flag
+// Combined atom for the application
 export const authAtom = atom(
-  (get) => get(baseAuthAtom),
+  (get) => {
+    const base = get(baseAuthAtom);
+    const isHydrated = get(hydrationAtom);
+    return { ...base, isHydrated };
+  },
   (get, set, update: AuthState | ((prev: AuthState) => AuthState)) => {
-    const nextValue = typeof update === 'function' ? update(get(baseAuthAtom)) : update;
-    // If isHydrated is not explicitly false in the update, set it to true
-    const isHydrated = nextValue.isHydrated !== false;
-    set(baseAuthAtom, { ...nextValue, isHydrated });
+    const prev = get(authAtom);
+    const nextValue = typeof update === 'function' ? update(prev) : update;
+
+    // Update persistent state
+    set(baseAuthAtom, {
+      user: nextValue.user,
+      accessToken: nextValue.accessToken,
+      isAuthenticated: nextValue.isAuthenticated,
+    });
+
+    // Update hydration state if changed
+    if (nextValue.isHydrated !== undefined) {
+      set(hydrationAtom, nextValue.isHydrated);
+    }
   }
 );
 

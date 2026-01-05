@@ -77,14 +77,12 @@ enum TaskStatus {
 
 model Canvas {
   id        String   @id @default(cuid())
-  content   String
-  source    Json?
+  name      String   @default("未命名画布")
   userId    String   @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
 
-  user        User              @relation(fields: [userId], references: [id])
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   nodes       CanvasNode[]
   connections CanvasConnection[]
 
@@ -93,21 +91,24 @@ model Canvas {
 }
 
 model CanvasNode {
-  id       String  @id @default(cuid())
-  canvasId String  @map("canvas_id")
-  ideaId   String? @map("idea_id")
-  x        Float
-  y        Float
-  width    Float   @default(200)
-  height   Float   @default(100)
-  content  String?
+  id        String   @id @default(cuid())
+  canvasId  String   @map("canvas_id")
+  ideaId    String?  @map("idea_id")
+  x         Float    @default(100)
+  y         Float    @default(100)
+  width     Float    @default(180)
+  height    Float    @default(80)
+  content   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   canvas          Canvas             @relation(fields: [canvasId], references: [id], onDelete: Cascade)
-  idea            Idea?              @relation(fields: [ideaId], references: [id])
+  idea            Idea?              @relation(fields: [ideaId], references: [id], onDelete: SetNull)
   fromConnections CanvasConnection[] @relation("FromNode")
   toConnections   CanvasConnection[] @relation("ToNode")
 
   @@index([canvasId])
+  @@index([ideaId])
   @@map("canvas_nodes")
 }
 

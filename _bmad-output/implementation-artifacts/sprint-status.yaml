@@ -70,10 +70,10 @@ development_status:
   # Epic 3: 自由画布体验 (Phase 1)
   # FRs: FR11, FR12, FR13, FR14, FR15, FR16, FR17, FR18, FR38, FR39
   # ===========================================
-  epic-3: backlog
-  3-1-canvas-creation: backlog
-  3-2-canvas-zoom-pan: backlog
-  3-3-node-drag-position: backlog
+  epic-3: in-progress
+  3-1-canvas-creation: done
+  3-2-canvas-zoom-pan: done
+  3-3-node-drag-position: done
   3-4-node-connection-annotation: backlog
   3-5-canvas-region-grouping: backlog
   3-6-multi-canvas-management: backlog
