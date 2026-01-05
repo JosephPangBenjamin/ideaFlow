@@ -186,7 +186,7 @@ importers:
         specifier: ^2.16.1
         version: 2.16.1(@babel/core@7.28.5)(@babel/template@7.27.2)(@types/react@18.3.27)(react@18.3.1)
       konva:
-        specifier: ^9.3.16
+        specifier: ^9.3.22
         version: 9.3.22
       react:
         specifier: ^18.3.1
@@ -195,7 +195,7 @@ importers:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
       react-konva:
-        specifier: ^18.2.10
+        specifier: ^18.2.14
         version: 18.2.14(@types/react@18.3.27)(konva@9.3.22)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-router-dom:
         specifier: ^6.26.2
