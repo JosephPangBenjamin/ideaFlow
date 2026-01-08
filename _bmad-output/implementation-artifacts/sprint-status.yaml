@@ -75,7 +75,7 @@ development_status:
   3-2-canvas-zoom-pan: done
   3-3-node-drag-position: done
   3-4-node-connection-annotation: done
-  3-5-canvas-region-grouping: completed
+  3-5-canvas-region-grouping: done
   3-6-multi-canvas-management: backlog
   epic-3-retrospective: optional
 

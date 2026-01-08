@@ -1,6 +1,6 @@
 # Story 3.5: 画布区域分组 (Canvas Region Grouping)
 
-Status: review
+Status: done
 
 ## Story
 
