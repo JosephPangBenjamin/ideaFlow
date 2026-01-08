@@ -87,6 +87,22 @@ function ImageContent({ url, width, height }: { url: string; width: number; heig
   return <KonvaImage image={image} width={width - 16} height={height - 16} x={8} y={8} />;
 }
 
+// Background Image for any node type
+function BackgroundImage({ url, width, height }: { url: string; width: number; height: number }) {
+  const [image] = useImage(url);
+  if (!image) return null;
+  return (
+    <KonvaImage
+      image={image}
+      width={width}
+      height={height}
+      cornerRadius={8}
+      opacity={0.3}
+      listening={false}
+    />
+  );
+}
+
 function CanvasNodeComponent({
   node,
   isSelected = false,
@@ -104,11 +120,18 @@ function CanvasNodeComponent({
   const nodeType = node.type || NodeTypeEnum.sub_idea;
   const baseStyle = nodeStyles[nodeType] || nodeStyles.sub_idea;
 
-  // Allow region color override
+  // Merge with custom styles from the node
+  const customStyle = (node as any).style || {};
   const style = {
     ...baseStyle,
-    fill: nodeType === NodeTypeEnum.region && node.color ? node.color : baseStyle.fill,
-    // If region has custom color, use it for stroke too if suitable, or keep default
+    fill:
+      customStyle.fill ||
+      (nodeType === NodeTypeEnum.region && node.color ? node.color : baseStyle.fill),
+    stroke: customStyle.stroke || baseStyle.stroke,
+    strokeWidth: customStyle.strokeWidth || baseStyle.strokeWidth,
+    textColor: customStyle.textColor || baseStyle.textColor,
+    fontSize: customStyle.fontSize || (nodeType === NodeTypeEnum.region ? 12 : 14),
+    backgroundImage: customStyle.backgroundImage || null,
   };
 
   const canDrag = style.draggable && !isConnectingFrom;
@@ -191,6 +214,8 @@ function CanvasNodeComponent({
       id={node.id}
       x={node.x}
       y={node.y}
+      width={node.width}
+      height={node.height}
       draggable={canDrag}
       onClick={() => onSelect?.(node.id)}
       onTap={() => onSelect?.(node.id)}
@@ -216,16 +241,34 @@ function CanvasNodeComponent({
         hitStrokeWidth={0} // Improve hit test performance
       />
 
-      {/* Region Header */}
+      {/* Background Image if any */}
+      {style.backgroundImage && (
+        <BackgroundImage url={style.backgroundImage} width={node.width} height={node.height} />
+      )}
+
+      {/* Region Label - Top-Center Border Line */}
       {nodeType === NodeTypeEnum.region && (
-        <Rect
-          width={node.width}
-          height={30}
-          fill={isHovered ? '#ffffff' : style.stroke}
-          cornerRadius={[8, 8, 0, 0]}
-          opacity={isHovered ? 0.3 : 1}
-          listening={false} // Optimization
-        />
+        <Group x={node.width / 2} y={0} listening={false}>
+          {/* Label background to mask the border line */}
+          <Rect
+            x={-(node.content?.length || 5) * 4 - 10}
+            y={-10}
+            width={(node.content?.length || 5) * 8 + 20}
+            height={20}
+            fill="#020617" // Matches bg-slate-950
+          />
+          <Text
+            text={getNodeContent()}
+            fill={style.stroke}
+            fontSize={12}
+            fontStyle="bold"
+            align="center"
+            verticalAlign="middle"
+            x={-(node.width - 24) / 2}
+            y={-6}
+            width={node.width - 24}
+          />
+        </Group>
       )}
 
       {/* Canvas V2: 节点类型标签（仅主想法显示） */}
@@ -237,26 +280,24 @@ function CanvasNodeComponent({
       {nodeType === NodeTypeEnum.image && node.imageUrl ? (
         <ImageContent url={node.imageUrl} width={node.width} height={node.height} />
       ) : (
-        /* Text content */
-        <Text
-          text={getNodeContent()}
-          fill={nodeType === NodeTypeEnum.region ? '#ffffff' : style.textColor}
-          fontSize={14}
-          fontFamily="system-ui, -apple-system, sans-serif"
-          padding={12}
-          width={node.width - 24}
-          height={
-            nodeType === NodeTypeEnum.region
-              ? 30
-              : node.height - (nodeType === NodeTypeEnum.master_idea ? 36 : 24)
-          }
-          y={nodeType === NodeTypeEnum.master_idea ? 18 : 0}
-          align={nodeType === NodeTypeEnum.region ? 'left' : 'center'}
-          verticalAlign={nodeType === NodeTypeEnum.region ? 'middle' : 'middle'}
-          wrap={nodeType === NodeTypeEnum.region ? 'none' : 'word'}
-          ellipsis
-          listening={false} // Text doesn't need events
-        />
+        /* Text content (Non-Region) */
+        nodeType !== NodeTypeEnum.region && (
+          <Text
+            text={getNodeContent()}
+            fill={style.textColor}
+            fontSize={style.fontSize}
+            fontFamily="system-ui, -apple-system, sans-serif"
+            padding={12}
+            width={node.width - 24}
+            height={node.height - (nodeType === NodeTypeEnum.master_idea ? 36 : 24)}
+            y={nodeType === NodeTypeEnum.master_idea ? 18 : 0}
+            align="center"
+            verticalAlign="middle"
+            wrap="word"
+            ellipsis
+            listening={false}
+          />
+        )
       )}
 
       {/* Connection handles - MUST be rendered AFTER Rect and Text to be on top */}
@@ -272,6 +313,19 @@ function CanvasNodeComponent({
   );
 }
 
+// Helper: shallow compare style objects
+const shallowEqualStyle = (a?: any, b?: any): boolean => {
+  if (a === b) return true;
+  if (!a || !b) return a === b;
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  for (const key of keysA) {
+    if (a[key] !== b[key]) return false;
+  }
+  return true;
+};
+
 export const CanvasNode = React.memo(CanvasNodeComponent, (prev, next) => {
   return (
     prev.isSelected === next.isSelected &&
@@ -283,6 +337,8 @@ export const CanvasNode = React.memo(CanvasNodeComponent, (prev, next) => {
     prev.node.width === next.node.width &&
     prev.node.height === next.node.height &&
     prev.node.content === next.node.content &&
-    prev.node.color === next.node.color
+    prev.node.color === next.node.color &&
+    prev.node.imageUrl === next.node.imageUrl &&
+    shallowEqualStyle(prev.node.style, next.node.style)
   );
 });

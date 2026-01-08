@@ -37,6 +37,7 @@ export interface CanvasNode {
   idea?: { id: string; content: string } | null;
   createdAt: string;
   updatedAt: string;
+  style?: any;
 }
 
 export interface CanvasConnection {
@@ -71,6 +72,7 @@ export interface CreateNodeDto {
   imageUrl?: string; // Canvas V2
   color?: string;
   parentId?: string;
+  style?: any; // Canvas V2
 }
 
 export interface UpdateNodeDto {
@@ -82,6 +84,7 @@ export interface UpdateNodeDto {
   imageUrl?: string; // Canvas V2
   color?: string;
   parentId?: string | null;
+  style?: any; // Canvas V2
 }
 
 export interface CreateConnectionDto {

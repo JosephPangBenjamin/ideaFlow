@@ -41,6 +41,15 @@ export function AppRoutes() {
       path: '/login',
       element: <LoginPage />,
     },
+    // Full-width canvas detail page (outside Layout)
+    {
+      path: '/canvas/:id',
+      element: (
+        <ProtectedRoute>
+          <CanvasDetailPage />
+        </ProtectedRoute>
+      ),
+    },
     {
       path: '/',
       element: (
@@ -68,10 +77,6 @@ export function AppRoutes() {
         {
           path: 'canvas',
           element: <Canvas />,
-        },
-        {
-          path: 'canvas/:id',
-          element: <CanvasDetailPage />,
         },
         {
           path: 'settings',

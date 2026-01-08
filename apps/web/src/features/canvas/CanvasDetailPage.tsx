@@ -24,7 +24,7 @@ export function CanvasDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full bg-slate-900">
+      <div className="flex items-center justify-center h-screen w-screen bg-slate-950 fixed inset-0 z-50">
         <Spin size={40} />
       </div>
     );
@@ -44,7 +44,7 @@ export function CanvasDetailPage() {
   const connections = connectionsData?.data || [];
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-slate-950">
+    <div className="h-screen flex flex-col overflow-hidden bg-slate-950">
       {/* Header with Integrated Library */}
       <div className="flex items-center px-4 h-16 bg-slate-900 border-b border-slate-800 z-10">
         <Button

@@ -19,6 +19,7 @@ vi.mock('react-konva', async () => {
     getPointerPosition: () => ({ x: 0, y: 0 }),
     width: () => 800,
     height: () => 600,
+    findOne: () => null,
   };
 
   return {
@@ -64,6 +65,13 @@ vi.mock('react-konva', async () => {
     Text: ({ text }: { text: string }) => <div data-testid="text">{text}</div>,
     Circle: (props: any) => <div data-testid="circle" data-x={props.x} data-y={props.y} />,
     Line: (props: any) => <div data-testid="line" />,
+    Transformer: React.forwardRef((props: any, ref: any) => {
+      React.useImperativeHandle(ref, () => ({
+        nodes: () => [],
+        getLayer: () => ({ batchDraw: () => {} }),
+      }));
+      return <div data-testid="transformer" />;
+    }),
   };
 });
 

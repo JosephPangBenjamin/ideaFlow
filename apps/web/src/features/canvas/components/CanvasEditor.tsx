@@ -1,10 +1,27 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '@/services/api';
-import { Stage, Layer, Line, Rect } from 'react-konva';
+import { Stage, Layer, Line, Rect, Transformer } from 'react-konva';
 import Konva from 'konva';
 import { useAtom } from 'jotai';
-import { Message, Modal, Input, Space } from '@arco-design/web-react';
+import {
+  Message,
+  Drawer,
+  Form,
+  Input,
+  Button,
+  Modal,
+  Slider,
+  ColorPicker,
+  Upload,
+} from '@arco-design/web-react';
+import {
+  IconDelete,
+  IconEdit,
+  IconLoading,
+  IconSettings,
+  IconUpload,
+} from '@arco-design/web-react/icon';
 import { CanvasNode } from './CanvasNode';
 import { ConnectionLine } from './ConnectionLine';
 import { ZoomIndicator } from './ZoomIndicator';
@@ -22,7 +39,7 @@ import {
   interactionModeAtom, // New atom
 } from '../stores/canvasAtoms';
 import { calculateZoom, toCanvasCoords } from '../utils/canvasUtils';
-import { REGION_COLORS, DEFAULT_REGION_COLOR } from '../utils/constants';
+import { DEFAULT_REGION_COLOR } from '../utils/constants';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   updateNode,
@@ -30,6 +47,7 @@ import {
   addConnection,
   updateConnection,
   deleteConnection,
+  deleteNode,
   Canvas,
   CanvasNode as CanvasNodeType,
   CanvasConnection,
@@ -42,6 +60,73 @@ interface CanvasEditorProps {
   initialConnections?: CanvasConnection[];
 }
 
+// Internal component for image selection in the sidebar
+function SidebarImageUpload({
+  value,
+  onChange,
+  label,
+}: {
+  value?: string;
+  onChange: (url: string) => void;
+  label: string;
+}) {
+  const [loading, setLoading] = useState(false);
+
+  const handleUpload = async (file: File) => {
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      // Using existing upload endpoint
+      const response = await api.post('/meta/preview-url', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      onChange(response.data.url);
+      Message.success('上传成功');
+    } catch (error) {
+      console.error('Upload failed:', error);
+      Message.error('上传失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mb-6">
+      <div className="text-[12px] font-medium text-slate-400 mb-2 uppercase tracking-wider">
+        {label}
+      </div>
+      <Upload
+        showUploadList={false}
+        customRequest={(options) => {
+          handleUpload(options.file as File);
+        }}
+      >
+        <div className="relative group cursor-pointer overflow-hidden rounded-xl border border-white/10 hover:border-blue-500/50 transition-all bg-white/5 h-28 flex items-center justify-center backdrop-blur-sm">
+          {value ? (
+            <>
+              <img src={value} alt="Preview" className="w-full h-full object-cover opacity-80" />
+              <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <IconEdit style={{ fontSize: 24 }} className="text-white" />
+              </div>
+            </>
+          ) : (
+            <div className="text-slate-500 flex flex-col items-center">
+              <IconUpload style={{ fontSize: 32 }} />
+              <span className="text-[11px] mt-2 font-medium">点击上传图片</span>
+            </div>
+          )}
+          {loading && (
+            <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center backdrop-blur-sm">
+              <IconLoading className="animate-spin text-blue-400" style={{ fontSize: 24 }} />
+            </div>
+          )}
+        </div>
+      </Upload>
+    </div>
+  );
+}
+
 export function CanvasEditor({
   canvas,
   initialNodes = [],
@@ -49,6 +134,7 @@ export function CanvasEditor({
 }: CanvasEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
+  const transformerRef = useRef<Konva.Transformer>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
   const [, setCurrentCanvas] = useAtom(currentCanvasAtom);
@@ -89,11 +175,12 @@ export function CanvasEditor({
 
   // Canvas V2: 节点编辑状态
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
-  const [editingNodeContent, setEditingNodeContent] = useState<string>('');
-  const [editingNodeColor, setEditingNodeColor] = useState<string>('');
   const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+
+  const [form] = Form.useForm();
 
   useEffect(() => {
     setMounted(true);
@@ -508,8 +595,8 @@ export function CanvasEditor({
     }
   };
 
-  // Canvas V2: 双击编辑节点
-  const handleNodeDoubleClick = useCallback(
+  // Canvas V2: 编辑节点
+  const handleNodeEdit = useCallback(
     (nodeId: string) => {
       const node = nodes.find((n) => n.id === nodeId);
       if (!node) return;
@@ -520,17 +607,29 @@ export function CanvasEditor({
         return;
       }
 
-      // 图片节点不可编辑内容
-      if (node.type === NodeTypeEnum.image) {
-        Message.info('图片节点不可编辑');
-        return;
-      }
-
       setEditingNodeId(nodeId);
-      setEditingNodeContent(node.content || '');
-      setEditingNodeColor(node.color || '');
+      setIsDrawerVisible(true);
+
+      // Update form values
+      form.setFieldsValue({
+        content: node.content || '',
+        color: node.color || '',
+        fontSize: node.style?.fontSize || (node.type === NodeTypeEnum.region ? 12 : 14),
+        textColor:
+          node.style?.textColor || (node.type === NodeTypeEnum.region ? '#ffffff' : '#f8fafc'),
+        fill: node.style?.fill || node.color || '',
+        stroke: node.style?.stroke || '',
+      });
     },
-    [nodes]
+    [nodes, form]
+  );
+
+  // Canvas V2: 双击编辑节点
+  const handleNodeDoubleClick = useCallback(
+    (nodeId: string) => {
+      handleNodeEdit(nodeId);
+    },
+    [handleNodeEdit]
   );
 
   // Canvas V2: 保存节点内容
@@ -538,26 +637,37 @@ export function CanvasEditor({
     if (!editingNodeId) return;
 
     try {
-      const response = await updateNode(editingNodeId, {
-        content: editingNodeContent,
-        color: editingNodeColor || undefined,
-      });
+      const values = await form.validate();
+      const node = nodes.find((n) => n.id === editingNodeId);
+      if (!node) return;
+
+      const style = {
+        ...((node.style as any) || {}),
+        fontSize: values.fontSize,
+        textColor: values.textColor,
+        fill: values.fill,
+        stroke: values.stroke,
+      };
+
+      const updateData: any = {
+        content: values.content,
+        color: values.color || undefined,
+        style,
+      };
+
+      const response = await updateNode(editingNodeId, updateData);
       setNodes((prev) =>
-        prev.map((n) =>
-          n.id === editingNodeId
-            ? { ...n, content: response.data.content, color: response.data.color }
-            : n
-        )
+        prev.map((n) => (n.id === editingNodeId ? { ...n, ...response.data } : n))
       );
       Message.success('已保存');
     } catch (error) {
+      console.error('Save failed:', error);
       Message.error('保存失败');
     }
 
     setEditingNodeId(null);
-    setEditingNodeContent('');
-    setEditingNodeColor('');
-  }, [editingNodeId, editingNodeContent, editingNodeColor, setNodes]);
+    setIsDrawerVisible(false);
+  }, [editingNodeId, nodes, form, setNodes]);
 
   // Connection creation handlers
   const handleConnectionStart = useCallback(
@@ -686,26 +796,17 @@ export function CanvasEditor({
     });
 
     if (targetNode && targetNode.id !== connectingFromNodeId) {
-      const existingConnection = connections.find(
-        (conn) =>
-          (conn.fromNodeId === connectingFromNodeId && conn.toNodeId === targetNode.id) ||
-          (conn.fromNodeId === targetNode.id && conn.toNodeId === connectingFromNodeId)
-      );
-
-      if (existingConnection) {
-        Message.warning('连线已存在');
-      } else {
-        try {
-          const response = await addConnection(canvas.id, {
-            fromNodeId: connectingFromNodeId,
-            toNodeId: targetNode.id,
-          });
-          setConnections((prev) => [...prev, response.data]);
-          Message.success('连线已创建');
-        } catch (error) {
-          console.error('Failed to create connection:', error);
-          Message.error('创建连线失败');
-        }
+      // Allow infinite connections - no duplicate check
+      try {
+        const response = await addConnection(canvas.id, {
+          fromNodeId: connectingFromNodeId,
+          toNodeId: targetNode.id,
+        });
+        setConnections((prev) => [...prev, response.data]);
+        Message.success('连线已创建');
+      } catch (error) {
+        console.error('Failed to create connection:', error);
+        Message.error('创建连线失败');
       }
     }
 
@@ -776,11 +877,56 @@ export function CanvasEditor({
     setEditingLabel('');
   }, [editingConnectionId, editingLabel, setConnections]);
 
-  // Handle delete key for connections
+  // Handle delete key for connections and nodes
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if editing in an input/textarea
+      if (
+        (e.target as HTMLElement)?.tagName === 'INPUT' ||
+        (e.target as HTMLElement)?.tagName === 'TEXTAREA'
+      ) {
+        return;
+      }
+
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (selectedConnectionId) {
+        // Delete selected node
+        if (selectedNodeId) {
+          const nodeToDelete = nodes.find((n) => n.id === selectedNodeId);
+          if (nodeToDelete?.type === NodeTypeEnum.master_idea) {
+            Message.warning('主想法节点不可删除');
+            return;
+          }
+          Modal.confirm({
+            title: '确定删除此节点吗？',
+            content: '相关的连线也将被删除。',
+            okText: '确定',
+            cancelText: '取消',
+            okButtonProps: { status: 'danger' },
+            onOk: async () => {
+              try {
+                await deleteNode(selectedNodeId);
+                // Remove node and related connections
+                // For regions: orphan children by clearing parentId (consistent with backend onDelete: SetNull)
+                setNodes((prev) =>
+                  prev
+                    .filter((n) => n.id !== selectedNodeId)
+                    .map((n) => (n.parentId === selectedNodeId ? { ...n, parentId: null } : n))
+                );
+                setConnections((prev) =>
+                  prev.filter(
+                    (conn) => conn.fromNodeId !== selectedNodeId && conn.toNodeId !== selectedNodeId
+                  )
+                );
+                setSelectedNodeId(null);
+                Message.success('节点已删除');
+              } catch (error) {
+                console.error('Failed to delete node:', error);
+                Message.error('删除节点失败');
+              }
+            },
+          });
+        } else if (selectedConnectionId) {
+          // Delete selected connection
           Modal.confirm({
             title: '确定删除这条连线吗？',
             okText: '确定',
@@ -804,7 +950,123 @@ export function CanvasEditor({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedConnectionId, setConnections, setSelectedConnectionId]);
+  }, [
+    selectedNodeId,
+    nodes,
+    selectedConnectionId,
+    setNodes,
+    setConnections,
+    setSelectedNodeId,
+    setSelectedConnectionId,
+  ]);
+
+  // Attach transformer to selected node
+  useEffect(() => {
+    const tr = transformerRef.current;
+    const stage = stageRef.current;
+    if (!tr || !stage) return;
+
+    if (selectedNodeId) {
+      // Find the Konva node by id
+      const selectedKonvaNode = stage.findOne(`#${selectedNodeId}`);
+      if (selectedKonvaNode) {
+        tr.nodes([selectedKonvaNode]);
+        tr.getLayer()?.batchDraw();
+      } else {
+        tr.nodes([]);
+      }
+    } else {
+      tr.nodes([]);
+    }
+  }, [selectedNodeId, nodes]); // Re-run when nodes change (e.g. after resize)
+
+  // Handle transform end (resize)
+  const handleTransformEnd = useCallback(
+    async (nodeId: string) => {
+      const stage = stageRef.current;
+      if (!stage) return;
+
+      const konvaNode = stage.findOne(`#${nodeId}`);
+      if (!konvaNode) return;
+
+      // Get the new size (accounting for scale applied by transformer)
+      const scaleX = konvaNode.scaleX();
+      const scaleY = konvaNode.scaleY();
+      const newWidth = Math.max(50, Math.round(konvaNode.width() * scaleX));
+      const newHeight = Math.max(30, Math.round(konvaNode.height() * scaleY));
+      const newX = Math.round(konvaNode.x());
+      const newY = Math.round(konvaNode.y());
+
+      // Reset scale to 1 after calculating new size
+      konvaNode.scaleX(1);
+      konvaNode.scaleY(1);
+
+      const nodeToUpdate = nodes.find((n) => n.id === nodeId);
+      if (!nodeToUpdate) return;
+
+      const oldWidth = nodeToUpdate.width;
+      const oldHeight = nodeToUpdate.height;
+      const oldX = nodeToUpdate.x;
+      const oldY = nodeToUpdate.y;
+
+      // Update local state immediately for the parent node
+      const updatedParent = {
+        ...nodeToUpdate,
+        x: newX,
+        y: newY,
+        width: newWidth,
+        height: newHeight,
+      };
+
+      let updatedNodes = nodes.map((n) => (n.id === nodeId ? updatedParent : n));
+
+      // Handle proportional resizing for children if parent is a region
+      const childUpdates: Array<Promise<any>> = [];
+      if (nodeToUpdate.type === NodeTypeEnum.region) {
+        const scaleX = newWidth / oldWidth;
+        const scaleY = newHeight / oldHeight;
+
+        updatedNodes = updatedNodes.map((n) => {
+          if (n.parentId === nodeId) {
+            const relX = n.x - oldX;
+            const relY = n.y - oldY;
+            const updatedChild = {
+              ...n,
+              x: Math.round(newX + relX * scaleX),
+              y: Math.round(newY + relY * scaleY),
+              width: Math.round(n.width * scaleX),
+              height: Math.round(n.height * scaleY),
+            };
+            childUpdates.push(
+              updateNode(n.id, {
+                x: updatedChild.x,
+                y: updatedChild.y,
+                width: updatedChild.width,
+                height: updatedChild.height,
+              })
+            );
+            return updatedChild;
+          }
+          return n;
+        });
+      }
+
+      setNodes(updatedNodes);
+
+      // Save parent to backend
+      try {
+        await updateNode(nodeId, { x: newX, y: newY, width: newWidth, height: newHeight });
+        // Save all children to backend
+        if (childUpdates.length > 0) {
+          await Promise.all(childUpdates);
+        }
+      } catch (error) {
+        console.error('Failed to update node size:', error);
+        Message.error('保存节点尺寸失败');
+      }
+    },
+    [nodes, setNodes]
+  );
 
   // Handle drop from ideas sidebar
   const handleDrop = useCallback(
@@ -981,21 +1243,51 @@ export function CanvasEditor({
             />
           )}
 
-          {/* Render nodes */}
-          {nodes.map((node) => (
-            <CanvasNode
-              key={node.id}
-              node={node}
-              isSelected={node.id === selectedNodeId}
-              isConnectionTarget={isConnecting && node.id !== connectingFromNodeId}
-              isHovered={hoveredRegionId === node.id}
-              onSelect={handleNodeSelect}
-              onDragEnd={handleDragEnd}
-              onConnectionStart={handleConnectionStart}
-              isConnectingFrom={isConnecting && node.id === connectingFromNodeId}
-              onDoubleClick={handleNodeDoubleClick} /* Canvas V2 */
-            />
-          ))}
+          {/* Render nodes - Regions first so they are at the bottom */}
+          {[...nodes]
+            .sort((a, b) => {
+              if (a.type === NodeTypeEnum.region && b.type !== NodeTypeEnum.region) return -1;
+              if (a.type !== NodeTypeEnum.region && b.type === NodeTypeEnum.region) return 1;
+              return 0;
+            })
+            .map((node) => (
+              <CanvasNode
+                key={node.id}
+                node={node}
+                isSelected={node.id === selectedNodeId}
+                isConnectionTarget={isConnecting && node.id !== connectingFromNodeId}
+                isHovered={hoveredRegionId === node.id}
+                onSelect={handleNodeSelect}
+                onDragEnd={handleDragEnd}
+                onConnectionStart={handleConnectionStart}
+                isConnectingFrom={isConnecting && node.id === connectingFromNodeId}
+                onDoubleClick={handleNodeDoubleClick} /* Canvas V2 */
+              />
+            ))}
+
+          {/* Transformer for resizing */}
+          <Transformer
+            ref={transformerRef}
+            rotateEnabled={false}
+            keepRatio={false}
+            borderStroke="#3b82f6"
+            anchorStroke="#3b82f6"
+            anchorFill="#1e293b"
+            anchorSize={8}
+            anchorCornerRadius={2}
+            boundBoxFunc={(oldBox, newBox) => {
+              // Limit minimum size
+              if (newBox.width < 50 || newBox.height < 30) {
+                return oldBox;
+              }
+              return newBox;
+            }}
+            onTransformEnd={() => {
+              if (selectedNodeId) {
+                handleTransformEnd(selectedNodeId);
+              }
+            }}
+          />
         </Layer>
       </Stage>
 
@@ -1060,51 +1352,268 @@ export function CanvasEditor({
         />
       </Modal>
 
-      {/* Canvas V2: 节点内容编辑模态框 */}
-      <Modal
+      <Drawer
+        width={380}
         title={
-          nodes.find((n) => n.id === editingNodeId)?.type === NodeTypeEnum.region
-            ? '编辑区域属性'
-            : '编辑节点内容'
-        }
-        visible={!!editingNodeId}
-        onOk={handleSaveNodeContent}
-        onCancel={() => {
-          setEditingNodeId(null);
-          setEditingNodeContent('');
-          setEditingNodeColor('');
-        }}
-        okText="保存"
-        cancelText="取消"
-      >
-        <Space direction="vertical" className="w-full" size="medium">
-          <div>
-            <div className="mb-2 text-slate-400 text-xs">名称/内容</div>
-            <Input.TextArea
-              value={editingNodeContent}
-              onChange={(val) => setEditingNodeContent(val)}
-              placeholder="输入内容..."
-              autoSize={{ minRows: 3, maxRows: 8 }}
-            />
-          </div>
-
-          {nodes.find((n) => n.id === editingNodeId)?.type === NodeTypeEnum.region && (
-            <div>
-              <div className="mb-2 text-slate-400 text-xs">背景颜色</div>
-              <Space wrap>
-                {REGION_COLORS.map((c) => (
-                  <div
-                    key={c}
-                    className={`w-8 h-8 rounded cursor-pointer border-2 transition-all ${editingNodeColor === c ? 'border-white scale-110' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                    style={{ backgroundColor: c }}
-                    onClick={() => setEditingNodeColor(c)}
-                  />
-                ))}
-              </Space>
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 shadow-xl shadow-black/10 transition-transform group-hover:scale-110">
+              <IconSettings style={{ fontSize: 20, color: '#60a5fa' }} />
             </div>
-          )}
-        </Space>
-      </Modal>
+            <div>
+              <div className="text-[10px] font-bold text-blue-400 uppercase tracking-[0.2em] mb-0.5">
+                Editor
+              </div>
+              <h2 className="text-lg font-heading font-bold text-white tracking-tight leading-none">
+                节点样式编辑
+              </h2>
+            </div>
+          </div>
+        }
+        visible={isDrawerVisible}
+        onOk={handleSaveNodeContent}
+        onCancel={() => setIsDrawerVisible(false)}
+        okText="确认修改"
+        cancelText="取消"
+        className="canvas-node-drawer"
+        footer={
+          <div className="grid grid-cols-2 gap-4 w-full">
+            <Button
+              className="rounded-2xl h-12 bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition-all duration-300 font-medium tracking-wide"
+              onClick={() => setIsDrawerVisible(false)}
+            >
+              取消
+            </Button>
+            <Button
+              type="primary"
+              className="rounded-2xl h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 border-none shadow-xl shadow-blue-500/20 font-bold transition-all duration-300 active:scale-[0.98]"
+              onClick={handleSaveNodeContent}
+              loading={isSaving}
+            >
+              完成更新
+            </Button>
+          </div>
+        }
+      >
+        <div className="relative px-1 py-1 overflow-hidden min-h-full">
+          {/* Dashboard-style dynamic glow effects */}
+          <div className="absolute -top-20 -right-20 w-48 h-48 bg-blue-500/20 rounded-full blur-[80px] pointer-events-none" />
+          <div className="absolute top-1/2 -left-20 w-40 h-40 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none" />
+
+          <div className="relative z-10">
+            <Form form={form} layout="vertical">
+              {/* Basic Content */}
+              {editingNodeId &&
+                nodes.find((n) => n.id === editingNodeId)?.type !== NodeTypeEnum.image && (
+                  <div className="mb-8">
+                    <div className="text-[11px] font-bold text-slate-400 mb-4 uppercase tracking-[0.1em] flex items-center gap-2 opaciy-80">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,1)]" />
+                      节点内容
+                    </div>
+                    <Form.Item field="content" noStyle>
+                      <Input.TextArea
+                        className="modern-textarea"
+                        autoSize={{ minRows: 3, maxRows: 8 }}
+                        placeholder="在这里输入想法..."
+                      />
+                    </Form.Item>
+                  </div>
+                )}
+
+              {/* Image Source for Image Nodes */}
+              {editingNodeId &&
+                nodes.find((n) => n.id === editingNodeId)?.type === NodeTypeEnum.image && (
+                  <SidebarImageUpload
+                    label="图片文件"
+                    value={nodes.find((n) => n.id === editingNodeId)?.imageUrl || undefined}
+                    onChange={(url) => {
+                      setNodes((prev) =>
+                        prev.map((n) => (n.id === editingNodeId ? { ...n, imageUrl: url } : n))
+                      );
+                    }}
+                  />
+                )}
+
+              {/* Typography Section */}
+              {editingNodeId &&
+                nodes.find((n) => n.id === editingNodeId)?.type !== NodeTypeEnum.image && (
+                  <div className="mb-8 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl">
+                    <div className="text-[11px] font-bold text-slate-400 mb-5 uppercase tracking-[0.1em] flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,1)]" />
+                      文字排版
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <Form.Item label="字体大小" field="fontSize">
+                        <Slider min={10} max={36} step={1} showTicks />
+                      </Form.Item>
+                      <Form.Item label="文字颜色" field="textColor">
+                        <ColorPicker className="w-full h-10" />
+                      </Form.Item>
+                    </div>
+                  </div>
+                )}
+
+              {/* Appearance Section */}
+              <div className="mb-10 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl">
+                <div className="text-[11px] font-bold text-slate-400 mb-5 uppercase tracking-[0.1em] flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,1)]" />
+                  视觉表现
+                </div>
+
+                <div className="grid grid-cols-2 gap-6 mb-6">
+                  <Form.Item label="背景颜色" field="fill">
+                    <ColorPicker showPreset className="w-full h-10" />
+                  </Form.Item>
+                  <Form.Item label="边框颜色" field="stroke">
+                    <ColorPicker showPreset className="w-full h-10" />
+                  </Form.Item>
+                </div>
+
+                {editingNodeId &&
+                  nodes.find((n) => n.id === editingNodeId)?.type !== NodeTypeEnum.image && (
+                    <div className="mt-4 border-t border-white/5 pt-6">
+                      <SidebarImageUpload
+                        label="背景图片"
+                        value={
+                          nodes.find((n) => n.id === editingNodeId)?.style?.backgroundImage ||
+                          undefined
+                        }
+                        onChange={(url) => {
+                          const nodeId = editingNodeId;
+                          setNodes((prev) =>
+                            prev.map((n) => {
+                              if (n.id === nodeId) {
+                                return {
+                                  ...n,
+                                  style: {
+                                    ...((n.style as any) || {}),
+                                    backgroundImage: url,
+                                  },
+                                };
+                              }
+                              return n;
+                            })
+                          );
+                        }}
+                      />
+                    </div>
+                  )}
+              </div>
+
+              {/* Danger Zone */}
+              <div className="mt-12 pt-6 border-t border-white/5">
+                <Button
+                  status="danger"
+                  type="secondary"
+                  long
+                  className="rounded-xl h-11 group transition-all hover:bg-red-500/10"
+                  onClick={() => {
+                    if (editingNodeId) {
+                      Modal.confirm({
+                        title: '确定要删除此节点吗？',
+                        content: '删除后无法撤销，所有关联的连线也将被删除。',
+                        okButtonProps: { status: 'danger' },
+                        onOk: () => {
+                          const e = new KeyboardEvent('keydown', { key: 'Delete' });
+                          window.dispatchEvent(e);
+                          setIsDrawerVisible(false);
+                        },
+                      });
+                    }
+                  }}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <IconDelete />
+                    <span>删除此节点</span>
+                  </div>
+                </Button>
+              </div>
+            </Form>
+          </div>
+        </div>
+      </Drawer>
+
+      <style>{`
+        .canvas-node-drawer .arco-drawer-content {
+          background: rgba(15, 23, 42, 0.4);
+          backdrop-filter: blur(24px) saturate(180%);
+          color: #f1f5f9;
+          border-left: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: -10px 0 40px rgba(0, 0, 0, 0.4);
+        }
+        .canvas-node-drawer .arco-drawer-header {
+          background: rgba(30, 41, 59, 0.2);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          padding: 32px 24px;
+        }
+        .canvas-node-drawer .arco-drawer-body {
+          padding: 24px;
+        }
+        .canvas-node-drawer .arco-drawer-footer {
+          background: rgba(15, 23, 42, 0.2);
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          padding: 24px;
+        }
+        .canvas-node-drawer .arco-drawer-title {
+          color: #f1f5f9;
+          width: 100%;
+        }
+        .canvas-node-drawer .arco-form-label-item > label {
+          color: #94a3b8;
+          font-size: 11px;
+          font-weight: 600;
+          margin-bottom: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .canvas-node-drawer .modern-textarea {
+          background: rgba(255, 255, 255, 0.03) !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          border-radius: 16px !important;
+          color: #ffffff !important;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          padding: 16px !important;
+          font-size: 14px;
+          line-height: 1.6;
+        }
+        .canvas-node-drawer .modern-textarea:focus {
+          background: rgba(255, 255, 255, 0.07) !important;
+          border-color: rgba(59, 130, 246, 0.5) !important;
+          box-shadow: 0 0 20px rgba(59, 130, 246, 0.15) !important;
+        }
+        .canvas-node-drawer .arco-slider-button {
+          border-color: #3b82f6;
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+        .canvas-node-drawer .arco-slider-bar {
+          background-color: #3b82f6;
+          height: 4px;
+        }
+        .canvas-node-drawer .arco-slider-rail {
+          background-color: rgba(255, 255, 255, 0.1);
+          height: 4px;
+        }
+        .canvas-node-drawer .arco-color-picker-trigger {
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.03);
+          height: 40px;
+          transition: all 0.3s ease;
+        }
+        .canvas-node-drawer .arco-color-picker-trigger:hover {
+          background: rgba(255, 255, 255, 0.06);
+          border-color: rgba(255, 255, 255, 0.12);
+        }
+        .canvas-node-drawer .arco-btn-status-danger {
+          background: rgba(239, 68, 68, 0.05) !important;
+          border: 1px solid rgba(239, 68, 68, 0.2) !important;
+          color: #ef4444 !important;
+        }
+        .canvas-node-drawer .arco-btn-status-danger:hover {
+          background: rgba(239, 68, 68, 0.15) !important;
+          border-color: #ef4444 !important;
+        }
+      `}</style>
     </div>
   );
 }
