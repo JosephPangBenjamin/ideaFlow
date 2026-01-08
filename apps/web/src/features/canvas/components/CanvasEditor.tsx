@@ -36,8 +36,9 @@ import {
   positionAtom,
   isConnectingAtom,
   connectingFromNodeIdAtom,
-  interactionModeAtom, // New atom
+  interactionModeAtom,
 } from '../stores/canvasAtoms';
+import { useAutoSave } from '../hooks/useAutoSave';
 import { calculateZoom, toCanvasCoords } from '../utils/canvasUtils';
 import { DEFAULT_REGION_COLOR } from '../utils/constants';
 import { useQueryClient } from '@tanstack/react-query';
@@ -455,15 +456,13 @@ export function CanvasEditor({
     }
   }, [pendingUpdates, setPendingUpdates, queryClient, canvas.id]);
 
-  // Canvas V2: Disable auto-save for now, switched to manual save
-  /*
   useAutoSave({
     data: pendingUpdates,
     onSave: savePendingUpdates,
     delay: 1000,
     enabled: Object.keys(pendingUpdates).length > 0,
+    onlyOnUnmount: true,
   });
-  */
 
   // Handle node selection
   const handleNodeSelect = useCallback(

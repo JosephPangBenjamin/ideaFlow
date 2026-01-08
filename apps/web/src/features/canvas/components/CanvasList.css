@@ -1,0 +1,72 @@
+/* CanvasList 容器样式 */
+.canvas-list-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: transparent;
+}
+
+.canvas-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0 20px 0;
+}
+
+.canvas-list-header .arco-typography {
+    margin: 0;
+    color: #f8fafc;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.canvas-list-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* 自定义滚动条 */
+.canvas-list-scroll-area::-webkit-scrollbar {
+    width: 4px;
+}
+
+.canvas-list-scroll-area::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.canvas-list-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.canvas-list-empty {
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.canvas-list-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* 适配 Drawer 内部样式 */
+.canvas-list-drawer .arco-drawer-content {
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(20px);
+}
+
+.canvas-list-drawer .arco-drawer-header {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.canvas-list-drawer .arco-typography {
+    color: #f8fafc !important;
+}

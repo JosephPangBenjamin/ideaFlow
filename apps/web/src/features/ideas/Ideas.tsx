@@ -17,21 +17,6 @@ export function Ideas() {
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="show" className="w-full">
-      {/* Header Section aligned with Dashboard style */}
-      <div className="mb-10 flex items-end justify-between">
-        <motion.div variants={fadeInUp}>
-          <h1 className="text-4xl font-heading font-bold text-white tracking-tight">想法流</h1>
-          <p className="text-slate-400 mt-2 text-lg">在这里捕捉、整理和链接您的每一个灵感碎片。</p>
-        </motion.div>
-
-        <motion.div
-          variants={fadeInUp}
-          className="hidden md:flex items-center gap-4 text-slate-300 bg-white/5 px-4 py-2 rounded-full border border-white/5 backdrop-blur-sm"
-        >
-          <span>💡 灵感爆发中</span>
-        </motion.div>
-      </div>
-
       <IdeaList onItemClick={handleItemClick} />
 
       <QuickCapture />

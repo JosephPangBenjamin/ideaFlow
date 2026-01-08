@@ -7,30 +7,41 @@ interface UseAutoSaveOptions {
   onSave: () => Promise<void>;
   delay?: number;
   enabled?: boolean;
+  onlyOnUnmount?: boolean;
 }
 
-export function useAutoSave({ data, onSave, delay = 3000, enabled = true }: UseAutoSaveOptions) {
+export function useAutoSave({
+  data,
+  onSave,
+  delay = 3000,
+  enabled = true,
+  onlyOnUnmount = false,
+}: UseAutoSaveOptions) {
   const [, setSaveStatus] = useAtom(saveStatusAtom);
   const [, setIsSaving] = useAtom(isSavingAtom);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isFirstRender = useRef(true);
+  const hasPendingChanges = useRef(false);
 
   // Refs to keep track of latest values for the cleanup function
   const onSaveRef = useRef(onSave);
   const dataRef = useRef(data);
   const enabledRef = useRef(enabled);
+  const onlyOnUnmountRef = useRef(onlyOnUnmount);
 
   useEffect(() => {
     onSaveRef.current = onSave;
     dataRef.current = data;
     enabledRef.current = enabled;
-  }, [onSave, data, enabled]);
+    onlyOnUnmountRef.current = onlyOnUnmount;
+  }, [onSave, data, enabled, onlyOnUnmount]);
 
   const save = useCallback(async () => {
     try {
       setSaveStatus('saving');
       setIsSaving(true);
       await onSaveRef.current();
+      hasPendingChanges.current = false;
       setSaveStatus('saved');
       // Reset to idle after 2 seconds
       setTimeout(() => setSaveStatus('idle'), 2000);
@@ -49,7 +60,10 @@ export function useAutoSave({ data, onSave, delay = 3000, enabled = true }: UseA
       return;
     }
 
-    if (!enabled) return;
+    // Track that we have something to save
+    hasPendingChanges.current = true;
+
+    if (!enabled || onlyOnUnmount) return;
 
     // Clear existing timeout
     if (timeoutRef.current) {
@@ -65,15 +79,18 @@ export function useAutoSave({ data, onSave, delay = 3000, enabled = true }: UseA
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      // If we are unmounting and have pending data (enabled is true),
-      // trigger an immediate save if possible.
-      // Note: Since we're unmounting, we can't update state anymore,
-      // but we can still fire the API call.
-      if (enabledRef.current) {
+    };
+  }, [data, delay, enabled, onlyOnUnmount, save]);
+
+  // Final cleanup save
+  useEffect(() => {
+    return () => {
+      // If we are unmounting and have pending data, trigger an immediate save.
+      if (enabledRef.current && hasPendingChanges.current) {
         onSaveRef.current();
       }
     };
-  }, [data, delay, enabled, save]);
+  }, []);
 
   return {
     saveNow: save,

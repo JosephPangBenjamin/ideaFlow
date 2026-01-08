@@ -1,0 +1,113 @@
+/* CanvasListItem 组件样式 - 玻璃拟态 Card */
+.canvas-list-item-card {
+    position: relative;
+    padding: 16px;
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+}
+
+.canvas-list-item-card:hover {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.canvas-list-item-card.active {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+}
+
+.canvas-card-glow {
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.canvas-card-main {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.canvas-card-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #94a3b8;
+}
+
+.active .canvas-card-icon-wrapper {
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.3);
+}
+
+.canvas-card-icon {
+    font-size: 20px;
+}
+
+.canvas-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.canvas-card-title {
+    display: block;
+    color: #f8fafc;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.canvas-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.meta-divider {
+    opacity: 0.5;
+}
+
+.canvas-card-actions {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.canvas-list-item-card:hover .canvas-card-actions {
+    opacity: 1;
+}
+
+.canvas-more-btn {
+    color: #64748b !important;
+}
+
+.canvas-more-btn:hover {
+    color: #f8fafc !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.canvas-rename-input.arco-input {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(59, 130, 246, 0.5) !important;
+    color: #f8fafc !important;
+    border-radius: 6px !important;
+}

@@ -1,14 +1,17 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Spin, Button, Message } from '@arco-design/web-react';
-import { IconArrowLeft } from '@arco-design/web-react/icon';
+import { Spin, Button, Message, Drawer } from '@arco-design/web-react';
+import { IconArrowLeft, IconApps } from '@arco-design/web-react/icon';
 import { CanvasEditor } from './components/CanvasEditor';
 import { CanvasLibrary } from './components/CanvasLibrary'; // Canvas V2: Horizontal library
+import { CanvasList } from './components/CanvasList';
 import { getCanvas, getConnections } from './services/canvas.service';
 
 export function CanvasDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [isListDrawerVisible, setIsListDrawerVisible] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['canvas', id],
@@ -56,6 +59,13 @@ export function CanvasDetailPage() {
           返回
         </Button>
         <div className="h-6 w-[1px] bg-slate-700 mx-2" />
+        <Button
+          type="text"
+          icon={<IconApps />}
+          onClick={() => setIsListDrawerVisible(true)}
+          className="text-slate-400 hover:text-white mr-4"
+          title="切换画布"
+        />
         <div className="flex flex-col min-w-[120px] max-w-[240px]">
           <h1 className="text-sm font-bold text-white truncate">{canvas.name}</h1>
           <span className="text-[10px] text-slate-500 font-mono">CANVAS v2</span>
@@ -68,9 +78,26 @@ export function CanvasDetailPage() {
         <div id="canvas-toolbar-portal" className="flex items-center ml-auto" />
       </div>
 
-      {/* Full Width Editor Area */}
       <div className="flex-1 relative bg-slate-950">
+        <Drawer
+          title="切换画布"
+          width={360}
+          visible={isListDrawerVisible}
+          onCancel={() => setIsListDrawerVisible(false)}
+          footer={null}
+          className="canvas-list-drawer"
+        >
+          <CanvasList
+            hideCreate={true}
+            currentCanvasId={id}
+            onSelect={(selectedCanvas) => {
+              navigate(`/canvas/${selectedCanvas.id}`);
+              setIsListDrawerVisible(false);
+            }}
+          />
+        </Drawer>
         <CanvasEditor
+          key={id}
           canvas={canvas}
           initialNodes={canvas.nodes || []}
           initialConnections={connections}

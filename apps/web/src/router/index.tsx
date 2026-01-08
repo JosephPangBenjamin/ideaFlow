@@ -13,12 +13,14 @@ const Ideas = lazy(() =>
 const Tasks = lazy(() =>
   import('@/features/tasks/Tasks').then((module) => ({ default: module.Tasks }))
 );
-const Canvas = lazy(() =>
-  import('@/features/canvas/Canvas').then((module) => ({ default: module.Canvas }))
-);
 const CanvasDetailPage = lazy(() =>
   import('@/features/canvas/CanvasDetailPage').then((module) => ({
     default: module.CanvasDetailPage,
+  }))
+);
+const CanvasListPage = lazy(() =>
+  import('@/features/canvas/pages/CanvasListPage').then((module) => ({
+    default: module.CanvasListPage,
   }))
 );
 const Settings = lazy(() =>
@@ -76,7 +78,7 @@ export function AppRoutes() {
         },
         {
           path: 'canvas',
-          element: <Canvas />,
+          element: <CanvasListPage />,
         },
         {
           path: 'settings',

@@ -4,7 +4,6 @@ import { useAtomValue } from 'jotai';
 import { api } from '../../../services/api';
 import { Idea } from '../types';
 import { IdeaCard } from './IdeaCard';
-import { IconLoading } from '@arco-design/web-react/icon';
 import { Empty } from '@arco-design/web-react';
 import { isSidebarOpenAtom } from '@/store/ui';
 
@@ -63,9 +62,19 @@ export const IdeaList: React.FC<Props> = ({ onItemClick }) => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64 text-slate-500 space-x-2">
-        <IconLoading className="animate-spin" />
-        <span>加载中...</span>
+      <div
+        className={`grid gap-6 ${
+          isSidebarOpen
+            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+        }`}
+      >
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            className="rounded-2xl h-[200px] bg-slate-800/20 border border-white/5 animate-pulse"
+          />
+        ))}
       </div>
     );
   }
@@ -85,7 +94,7 @@ export const IdeaList: React.FC<Props> = ({ onItemClick }) => {
   }
 
   return (
-    <div className="space-y-4 pb-10">
+    <div className="space-y-6 pb-20">
       <div
         className={`grid gap-6 transition-all duration-500 ease-spring ${
           isSidebarOpen
