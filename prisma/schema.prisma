@@ -116,6 +116,7 @@ model CanvasNode {
   imageUrl  String?        @map("image_url")   // Canvas V2: 图片节点URL
   color     String?        // 区域背景颜色
   parentId  String?        @map("parent_id")   // 层级关系（父节点ID）
+  style     Json?                              // 样式属性（字体大小、文字颜色、背景图片等）
   createdAt DateTime       @default(now()) @map("created_at")
   updatedAt DateTime       @updatedAt @map("updated_at")
 
