@@ -34,6 +34,10 @@ export const positionAtom = atom<{ x: number; y: number }>({ x: 0, y: 0 });
 export const isConnectingAtom = atom<boolean>(false);
 export const connectingFromNodeIdAtom = atom<string | null>(null);
 
+// Interaction mode
+export type InteractionMode = 'select' | 'create_region';
+export const interactionModeAtom = atom<InteractionMode>('select');
+
 // Derived atom: selected node object
 export const selectedNodeAtom = atom((get) => {
   const selectedId = get(selectedNodeIdAtom);

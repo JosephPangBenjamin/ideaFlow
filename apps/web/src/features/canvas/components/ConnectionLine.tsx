@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Line, Circle, Text, Tag } from 'react-konva';
+import { Line, Circle, Text, Tag, Label, Group } from 'react-konva';
 
 interface ConnectionLineProps {
   fromX: number;
@@ -22,13 +22,12 @@ export const ConnectionLine = memo(function ConnectionLine({
   selected = false,
   onClick,
   onDblClick,
-  onLabelChange,
 }: ConnectionLineProps) {
   const midX = (fromX + toX) / 2;
   const midY = (fromY + toY) / 2;
 
   return (
-    <>
+    <Group>
       <Line
         points={[fromX, fromY, toX, toY]}
         stroke={selected ? '#8B5CF6' : '#6366f1'}
@@ -37,64 +36,30 @@ export const ConnectionLine = memo(function ConnectionLine({
         lineJoin="round"
         onClick={onClick}
         onDblClick={onDblClick}
+        onTap={onClick}
+        onDblTap={onDblClick}
+        hitStrokeWidth={10}
       />
-      {label && onLabelChange && (
-        <>
-          <Tag
-            x={midX}
-            y={midY}
-            fill="#1e293b"
-            opacity={0.8}
-            offset={{ x: -50, y: -12 }}
-            listening={false}
-            onClick={() => onLabelChange(label)}
-          >
-            <Text
-              text={label}
-              fill="#e2e8f0"
-              padding={8}
-              fontSize={12}
-              width={100}
-              align="center"
-            />
-          </Tag>
-        </>
-      )}
-      {label && !onLabelChange && (
-        <>
-          <Tag
-            x={midX}
-            y={midY}
-            fill="#1e293b"
-            opacity={0.8}
-            offset={{ x: -50, y: -12 }}
-            listening={false}
-          >
-            <Text
-              text={label}
-              fill="#e2e8f0"
-              padding={8}
-              fontSize={12}
-              width={100}
-              align="center"
-            />
-          </Tag>
-        </>
+      {label && (
+        <Label x={midX} y={midY} offsetX={50} offsetY={10}>
+          <Tag fill="#1e293b" opacity={0.9} cornerRadius={4} pointerDirection="none" />
+          <Text text={label} fill="#e2e8f0" padding={6} fontSize={12} width={100} align="center" />
+        </Label>
       )}
       <Circle
         x={fromX}
         y={fromY}
-        radius={3}
+        radius={4}
         fill={selected ? '#8B5CF6' : '#6366f1'}
         listening={false}
       />
       <Circle
         x={toX}
         y={toY}
-        radius={3}
+        radius={4}
         fill={selected ? '#8B5CF6' : '#6366f1'}
         listening={false}
       />
-    </>
+    </Group>
   );
 });

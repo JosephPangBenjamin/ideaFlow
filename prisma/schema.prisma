@@ -38,9 +38,10 @@ model Idea {
   updatedAt DateTime @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  user  User   @relation(fields: [userId], references: [id])
-  tasks Task[]
-  nodes CanvasNode[]
+  user   User    @relation(fields: [userId], references: [id])
+  tasks  Task[]
+  nodes  CanvasNode[]
+  canvas Canvas?  // Canvas V2: 一对一关系
 
   @@index([userId])
   @@index([createdAt])
@@ -75,40 +76,59 @@ enum TaskStatus {
   done
 }
 
+// Canvas V2: 节点类型枚举
+enum CanvasNodeType {
+  master_idea    // 主想法节点（只读，来自关联的Idea）
+  sub_idea       // 子想法节点（可编辑，画布内创建）
+  annotation     // 批注节点（纯文字注释）
+  image          // 图片节点
+  region         // 区域节点（分组容器）
+}
+
 model Canvas {
   id        String   @id @default(cuid())
   name      String   @default("未命名画布")
   userId    String   @map("user_id")
+  ideaId    String?  @unique @map("idea_id")  // Canvas V2: 关联的核心想法（一对一，可选以支持迁移）
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  idea        Idea?             @relation(fields: [ideaId], references: [id], onDelete: Cascade)
   nodes       CanvasNode[]
   connections CanvasConnection[]
 
   @@index([userId])
+  @@index([ideaId])
   @@map("canvases")
 }
 
 model CanvasNode {
-  id        String   @id @default(cuid())
-  canvasId  String   @map("canvas_id")
-  ideaId    String?  @map("idea_id")
-  x         Float    @default(100)
-  y         Float    @default(100)
-  width     Float    @default(180)
-  height    Float    @default(80)
-  content   String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        String         @id @default(cuid())
+  canvasId  String         @map("canvas_id")
+  type      CanvasNodeType @default(sub_idea)  // Canvas V2: 节点类型
+  ideaId    String?        @map("idea_id")     // 仅 master_idea 类型使用
+  x         Float          @default(100)
+  y         Float          @default(100)
+  width     Float          @default(180)
+  height    Float          @default(80)
+  content   String?        // 用于 sub_idea/annotation
+  imageUrl  String?        @map("image_url")   // Canvas V2: 图片节点URL
+  color     String?        // 区域背景颜色
+  parentId  String?        @map("parent_id")   // 层级关系（父节点ID）
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
 
   canvas          Canvas             @relation(fields: [canvasId], references: [id], onDelete: Cascade)
   idea            Idea?              @relation(fields: [ideaId], references: [id], onDelete: SetNull)
+  parent          CanvasNode?        @relation("NodeHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children        CanvasNode[]       @relation("NodeHierarchy")
   fromConnections CanvasConnection[] @relation("FromNode")
   toConnections   CanvasConnection[] @relation("ToNode")
 
   @@index([canvasId])
   @@index([ideaId])
+  @@index([parentId])
   @@map("canvas_nodes")
 }
 

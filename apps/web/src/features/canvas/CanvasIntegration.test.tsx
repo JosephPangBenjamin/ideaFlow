@@ -3,6 +3,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { CanvasDetailPage } from './CanvasDetailPage';
+import { DEFAULT_REGION_COLOR } from './utils/constants';
 import * as canvasService from './services/canvas.service';
 import * as apiService from '@/services/api';
 
@@ -11,21 +12,60 @@ vi.mock('./services/canvas.service');
 vi.mock('@/services/api');
 
 // Mock react-konva
-vi.mock('react-konva', () => ({
-  Stage: ({ children, onClick }: { children: React.ReactNode; onClick?: any }) => (
-    <div data-testid="stage" onClick={onClick}>
-      {children}
-    </div>
-  ),
-  Layer: ({ children }: { children: React.ReactNode }) => <div data-testid="layer">{children}</div>,
-  Group: ({ children, x, y, onClick }: any) => (
-    <div data-testid="canvas-node-group" data-x={x} data-y={y} onClick={onClick}>
-      {children}
-    </div>
-  ),
-  Rect: (props: any) => <div data-testid="rect" data-fill={props.fill} />,
-  Text: ({ text }: { text: string }) => <div data-testid="text">{text}</div>,
-}));
+vi.mock('react-konva', async () => {
+  const React = await import('react');
+  const stageMock = {
+    getStage: () => stageMock,
+    getPointerPosition: () => ({ x: 0, y: 0 }),
+    width: () => 800,
+    height: () => 600,
+  };
+
+  return {
+    Stage: React.forwardRef(
+      ({ children, onClick, onMouseDown, onMouseMove, onMouseUp }: any, ref: any) => {
+        React.useImperativeHandle(ref, () => stageMock);
+
+        const wrap = (e: any, on: any) => {
+          stageMock.getPointerPosition = () => ({ x: e.clientX, y: e.clientY });
+          on?.({ ...e, target: stageMock, evt: e });
+        };
+
+        return (
+          <div
+            data-testid="stage"
+            onClick={(e) => wrap(e, onClick)}
+            onMouseDown={(e) => wrap(e, onMouseDown)}
+            onMouseMove={(e) => wrap(e, onMouseMove)}
+            onMouseUp={(e) => wrap(e, onMouseUp)}
+          >
+            {children}
+          </div>
+        );
+      }
+    ),
+    Layer: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="layer">{children}</div>
+    ),
+    Group: ({ children, id, x, y, onClick, onDragEnd }: any) => (
+      <div
+        data-testid="canvas-node-group"
+        data-id={id}
+        data-x={x}
+        data-y={y}
+        onClick={onClick}
+        // Trigger dragEnd with the target provided in the test event
+        onBlur={(e: any) => onDragEnd?.(e)}
+      >
+        {children}
+      </div>
+    ),
+    Rect: (props: any) => <div data-testid="rect" data-fill={props.fill} />,
+    Text: ({ text }: { text: string }) => <div data-testid="text">{text}</div>,
+    Circle: (props: any) => <div data-testid="circle" data-x={props.x} data-y={props.y} />,
+    Line: (props: any) => <div data-testid="line" />,
+  };
+});
 
 // Mock data-transfer for drag and drop
 class MockDataTransfer {
@@ -79,6 +119,9 @@ describe('Canvas 拖拽集成测试', () => {
 
     // Mock getCanvas
     (canvasService.getCanvas as any).mockResolvedValue({ data: mockCanvas });
+
+    // Mock getConnections
+    (canvasService.getConnections as any).mockResolvedValue({ data: [] });
 
     // Mock api.get for ideas sidebar
     (apiService.api.get as any).mockResolvedValue({ data: mockIdeas });
@@ -158,10 +201,155 @@ describe('Canvas 拖拽集成测试', () => {
 
     // 在新节点内部查找文本，避免与侧边栏冲突
     const nodeText = newNode.querySelector('[data-testid="text"]');
-    expect(nodeText?.textContent).toBe('测试想法1');
+    // 如果 content 为空，CanvasNode 会显示“双击编辑”或节点类型标签
+    expect(nodeText?.textContent).toMatch(/测试想法1|双击编辑/);
 
     // 5. 验证节点位置
     expect(newNode.getAttribute('data-x')).toBe('100');
     expect(newNode.getAttribute('data-y')).toBe('100');
+  });
+
+  describe('Region 交互与分组测试', () => {
+    it('应该能进入区域创建模式并绘制区域', async () => {
+      const mockRegionNode = {
+        id: 'region-1',
+        canvasId: 'canvas-1',
+        type: 'region',
+        x: 50,
+        y: 50,
+        width: 200,
+        height: 200,
+        content: '新建区域',
+        color: DEFAULT_REGION_COLOR,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      (canvasService.addNode as any).mockResolvedValue({ data: mockRegionNode });
+
+      render(<CanvasDetailPage />, { wrapper: createWrapper() });
+
+      const toolbarBtn = await screen.findByRole('button', { name: '创建区域' });
+      fireEvent.click(toolbarBtn);
+      expect(screen.getByText('请在画布上拖拽创建区域')).toBeTruthy();
+
+      const stage = screen.getByTestId('stage');
+      fireEvent.mouseDown(stage, { button: 0, clientX: 50, clientY: 50 });
+
+      // 等待状态更新
+      await waitFor(() => {}, { timeout: 0 });
+
+      fireEvent.mouseMove(stage, { clientX: 250, clientY: 250 });
+
+      // 等待 Ghost Region 渲染 (验证 mouseMove 生效)
+      await waitFor(() => {
+        const rects = screen.getAllByTestId('rect');
+        // Ghost region has specific fill
+        const ghost = rects.find((r) => r.getAttribute('data-fill') === 'rgba(139, 92, 246, 0.1)');
+        expect(ghost).toBeTruthy();
+      });
+
+      fireEvent.mouseUp(stage, { clientX: 250, clientY: 250 });
+
+      await waitFor(() => {
+        expect(canvasService.addNode).toHaveBeenCalledWith(
+          'canvas-1',
+          expect.objectContaining({
+            type: 'region',
+            x: 50,
+            y: 50,
+            width: 200,
+            height: 200,
+          })
+        );
+      });
+
+      expect(await screen.findByText('区域已创建')).toBeTruthy();
+    });
+
+    it('将节点拖入区域时应更新 parentId', async () => {
+      const regionNode = {
+        id: 'region-1',
+        type: 'region',
+        x: 0,
+        y: 0,
+        width: 500,
+        height: 500,
+        content: '大区域',
+      };
+      const ideaNode = {
+        id: 'node-1',
+        type: 'sub_idea',
+        x: 600,
+        y: 600,
+        width: 100,
+        height: 100,
+        content: '独立节点',
+      };
+
+      (canvasService.getCanvas as any).mockResolvedValue({
+        data: { ...mockCanvas, nodes: [regionNode, ideaNode] },
+      });
+      (canvasService.updateNode as any).mockResolvedValue({
+        data: { ...ideaNode, parentId: 'region-1' },
+      });
+
+      render(<CanvasDetailPage />, { wrapper: createWrapper() });
+
+      const nodeGroup = await screen.findByText('独立节点');
+      const nodeEl = nodeGroup.closest('[data-testid="canvas-node-group"]');
+
+      // 模拟移动到 (100, 100)，位于区域内
+      fireEvent.blur(nodeEl!, { target: { x: () => 100, y: () => 100 } });
+
+      await waitFor(() => {
+        expect(canvasService.updateNode).toHaveBeenCalledWith(
+          'node-1',
+          expect.objectContaining({
+            parentId: 'region-1',
+          })
+        );
+      });
+    });
+
+    it('移动区域时应联动更新子节点位置', async () => {
+      const region = {
+        id: 'region-1',
+        type: 'region',
+        x: 100,
+        y: 100,
+        width: 300,
+        height: 300,
+        content: '大区域',
+      };
+      const child = {
+        id: 'node-2',
+        type: 'sub_idea',
+        parentId: 'region-1',
+        x: 150,
+        y: 150,
+        width: 100,
+        height: 100,
+        content: '子节点',
+      };
+
+      (canvasService.getCanvas as any).mockResolvedValue({
+        data: { ...mockCanvas, nodes: [region, child] },
+      });
+      (canvasService.updateNode as any).mockResolvedValue({ data: { ...region, x: 200, y: 200 } });
+
+      render(<CanvasDetailPage />, { wrapper: createWrapper() });
+
+      const regionText = await screen.findByText('大区域');
+      const regionEl = regionText.closest('[data-testid="canvas-node-group"]');
+
+      // 区域向右下方移动 100, 100
+      fireEvent.blur(regionEl!, { target: { x: () => 200, y: () => 200 } });
+
+      await waitFor(() => {
+        const childGroup = screen.getByText('子节点').closest('[data-testid="canvas-node-group"]');
+        expect(childGroup?.getAttribute('data-x')).toBe('250');
+        expect(childGroup?.getAttribute('data-y')).toBe('250');
+      });
+    });
   });
 });

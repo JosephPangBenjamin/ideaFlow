@@ -7,7 +7,10 @@ import {
   IconClose,
   IconLoading,
   IconDelete,
+  IconApps,
 } from '@arco-design/web-react/icon';
+import { useNavigate } from 'react-router-dom';
+import { findOrCreateCanvasByIdeaId } from '@/features/canvas/services/canvas.service';
 import { formatFullTime } from '../../../utils/date';
 import { Idea } from '../types';
 import { SourcePreview } from './SourcePreview';
@@ -27,6 +30,18 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  // Canvas V2: 进入画布
+  const canvasMutation = useMutation({
+    mutationFn: () => findOrCreateCanvasByIdeaId(idea.id),
+    onSuccess: (response) => {
+      navigate(`/canvas/${response.data.id}`);
+    },
+    onError: () => {
+      Message.error('进入画布失败，请重试');
+    },
+  });
 
   // Reset edit content when idea changes
   useEffect(() => {
@@ -212,6 +227,15 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
           {renderSaveStatus()}
           {!isEditing && (
             <>
+              <Button
+                type="text"
+                icon={<IconApps />}
+                onClick={() => canvasMutation.mutate()}
+                className="text-slate-400 hover:text-blue-500"
+                loading={canvasMutation.isPending}
+              >
+                进入画布
+              </Button>
               <Button
                 type="text"
                 icon={<IconEdit />}

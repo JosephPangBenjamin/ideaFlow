@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { CreateConnectionDto } from './dto/create-connection.dto';
 import { UpdateConnectionDto } from './dto/update-connection.dto';
+import { CanvasNodeType } from '@prisma/client';
 
 describe('CanvasesService', () => {
   let service: CanvasesService;
@@ -29,6 +30,7 @@ describe('CanvasesService', () => {
               findUnique: jest.fn(),
               findMany: jest.fn(),
               update: jest.fn(),
+              updateMany: jest.fn(),
               delete: jest.fn(),
             },
             canvasConnection: {
@@ -76,7 +78,10 @@ describe('CanvasesService', () => {
           name: '未命名画布',
           userId,
         },
-        include: { nodes: true },
+        include: {
+          nodes: true,
+          idea: { select: { id: true, content: true } },
+        },
       });
       expect(result).toEqual({ data: expectedCanvas });
     });
@@ -102,7 +107,10 @@ describe('CanvasesService', () => {
           name: '我的画布',
           userId,
         },
-        include: { nodes: true },
+        include: {
+          nodes: true,
+          idea: { select: { id: true, content: true } },
+        },
       });
       expect(result).toEqual({ data: expectedCanvas });
     });
@@ -248,11 +256,65 @@ describe('CanvasesService', () => {
       expect(prisma.canvasNode.create).toHaveBeenCalledWith({
         data: {
           canvasId,
+          type: CanvasNodeType.sub_idea,
           ideaId: 'idea-1',
           x: 150,
           y: 200,
           width: 180,
           height: 80,
+          content: undefined,
+          imageUrl: undefined,
+          color: undefined,
+          parentId: undefined,
+        },
+        include: { idea: { select: { id: true, content: true } } },
+      });
+      expect(result).toEqual({ data: expectedNode });
+    });
+
+    it('should add a region node with color', async () => {
+      const userId = 'user-1';
+      const canvasId = 'canvas-1';
+      const createNodeDto = {
+        type: CanvasNodeType.region,
+        x: 100,
+        y: 100,
+        width: 300,
+        height: 200,
+        color: '#ff0000',
+        content: 'Region 1',
+      };
+      const existingCanvas = { id: canvasId, name: '画布', userId, nodes: [] };
+      const expectedNode = {
+        id: 'region-1',
+        canvasId,
+        type: CanvasNodeType.region,
+        x: 100,
+        y: 100,
+        width: 300,
+        height: 200,
+        color: '#ff0000',
+        content: 'Region 1',
+      };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(existingCanvas);
+      (prisma.canvasNode.create as jest.Mock).mockResolvedValue(expectedNode);
+
+      const result = await service.addNode(userId, canvasId, createNodeDto as any);
+
+      expect(prisma.canvasNode.create).toHaveBeenCalledWith({
+        data: {
+          canvasId,
+          type: CanvasNodeType.region,
+          ideaId: undefined,
+          x: 100,
+          y: 100,
+          width: 300,
+          height: 200,
+          content: 'Region 1',
+          imageUrl: undefined,
+          color: '#ff0000',
+          parentId: undefined,
         },
         include: { idea: { select: { id: true, content: true } } },
       });
@@ -262,7 +324,12 @@ describe('CanvasesService', () => {
     it('should throw NotFoundException if idea does not exist', async () => {
       const userId = 'user-1';
       const canvasId = 'canvas-1';
-      const createNodeDto = { ideaId: 'non-existent', x: 100, y: 100 };
+      const createNodeDto = {
+        ideaId: 'non-existent',
+        x: 100,
+        y: 100,
+        type: CanvasNodeType.master_idea,
+      };
       const existingCanvas = { id: canvasId, name: '画布', userId, nodes: [] };
 
       (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(existingCanvas);
@@ -276,7 +343,12 @@ describe('CanvasesService', () => {
     it('should throw NotFoundException if idea belongs to another user', async () => {
       const userId = 'user-1';
       const canvasId = 'canvas-1';
-      const createNodeDto = { ideaId: 'idea-1', x: 100, y: 100 };
+      const createNodeDto = {
+        ideaId: 'idea-1',
+        x: 100,
+        y: 100,
+        type: CanvasNodeType.master_idea,
+      };
       const existingCanvas = { id: canvasId, name: '画布', userId, nodes: [] };
       const otherUserIdea = { id: 'idea-1', userId: 'user-2', content: '他人的想法' };
 
@@ -285,6 +357,47 @@ describe('CanvasesService', () => {
 
       await expect(service.addNode(userId, canvasId, createNodeDto)).rejects.toThrow(
         NotFoundException
+      );
+    });
+
+    it('should throw BadRequestException if parentId does not exist', async () => {
+      const userId = 'user-1';
+      const canvasId = 'canvas-1';
+      const createNodeDto = {
+        x: 100,
+        y: 100,
+        parentId: 'parent-1',
+      };
+      const existingCanvas = { id: canvasId, name: '画布', userId, nodes: [] };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(existingCanvas);
+      (prisma.canvasNode.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.addNode(userId, canvasId, createNodeDto as any)).rejects.toThrow(
+        BadRequestException
+      );
+    });
+
+    it('should throw BadRequestException if parent node is not a region', async () => {
+      const userId = 'user-1';
+      const canvasId = 'canvas-1';
+      const createNodeDto = {
+        x: 100,
+        y: 100,
+        parentId: 'parent-1',
+      };
+      const existingCanvas = { id: canvasId, name: '画布', userId, nodes: [] };
+      const nonRegionParent = {
+        id: 'parent-1',
+        canvasId,
+        type: CanvasNodeType.sub_idea,
+      };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(existingCanvas);
+      (prisma.canvasNode.findUnique as jest.Mock).mockResolvedValue(nonRegionParent);
+
+      await expect(service.addNode(userId, canvasId, createNodeDto as any)).rejects.toThrow(
+        BadRequestException
       );
     });
   });
@@ -320,6 +433,85 @@ describe('CanvasesService', () => {
       expect(result).toEqual({ data: updatedNode });
     });
 
+    it('should update node grouping (parentId)', async () => {
+      const userId = 'user-1';
+      const nodeId = 'node-1';
+      const updateDto = { parentId: 'region-1' };
+      const existingNode = {
+        id: nodeId,
+        canvasId: 'canvas-1',
+        x: 100,
+        y: 100,
+        canvas: { userId },
+        type: CanvasNodeType.sub_idea,
+      };
+      const regionNode = {
+        id: 'region-1',
+        canvasId: 'canvas-1',
+        x: 100,
+        y: 100,
+        type: CanvasNodeType.region,
+      };
+      const updatedNode = {
+        ...existingNode,
+        parentId: 'region-1',
+      };
+
+      (prisma.canvasNode.findUnique as jest.Mock)
+        .mockResolvedValueOnce(existingNode)
+        .mockResolvedValueOnce(regionNode);
+      (prisma.canvasNode.update as jest.Mock).mockResolvedValue(updatedNode);
+
+      const result = await service.updateNode(userId, nodeId, updateDto);
+
+      expect(prisma.canvasNode.update).toHaveBeenCalledWith({
+        where: { id: nodeId },
+        data: updateDto,
+        include: { idea: { select: { id: true, content: true } } },
+      });
+      expect(result).toEqual({ data: updatedNode });
+    });
+
+    it('should move children when region moves', async () => {
+      const userId = 'user-1';
+      const nodeId = 'region-1';
+      const updateDto = { x: 300, y: 300 };
+      const existingNode = {
+        id: nodeId,
+        canvasId: 'canvas-1',
+        type: CanvasNodeType.region,
+        x: 100,
+        y: 100,
+        canvas: { userId },
+      };
+      const updatedNode = {
+        ...existingNode,
+        ...updateDto,
+      };
+
+      (prisma.canvasNode.findUnique as jest.Mock).mockResolvedValue(existingNode);
+      (prisma.canvasNode.update as jest.Mock).mockResolvedValue(updatedNode);
+
+      await service.updateNode(userId, nodeId, updateDto);
+
+      // Verify that children updates were triggered
+      // Delta X = 300 - 100 = 200
+      // Delta Y = 300 - 100 = 200
+      expect(prisma.canvasNode.updateMany).toHaveBeenCalledWith({
+        where: { parentId: nodeId },
+        data: {
+          x: { increment: 200 },
+          y: { increment: 200 },
+        },
+      });
+
+      expect(prisma.canvasNode.update).toHaveBeenCalledWith({
+        where: { id: nodeId },
+        data: updateDto,
+        include: { idea: { select: { id: true, content: true } } },
+      });
+    });
+
     it('should throw NotFoundException if node does not exist', async () => {
       const userId = 'user-1';
       const nodeId = 'non-existent';
@@ -346,6 +538,49 @@ describe('CanvasesService', () => {
 
       await expect(service.updateNode(userId, nodeId, updateDto)).rejects.toThrow(
         ForbiddenException
+      );
+    });
+
+    it('should throw BadRequestException if updating parentId to self', async () => {
+      const userId = 'user-1';
+      const nodeId = 'node-1';
+      const updateDto = { parentId: 'node-1' };
+      const existingNode = {
+        id: nodeId,
+        canvasId: 'canvas-1',
+        canvas: { userId },
+      };
+
+      (prisma.canvasNode.findUnique as jest.Mock).mockResolvedValue(existingNode);
+
+      await expect(service.updateNode(userId, nodeId, updateDto)).rejects.toThrow(
+        BadRequestException
+      );
+    });
+
+    it('should throw BadRequestException if parent node is not in same canvas', async () => {
+      const userId = 'user-1';
+      const nodeId = 'node-1';
+      const updateDto = { parentId: 'parent-1' };
+      const existingNode = {
+        id: nodeId,
+        canvasId: 'canvas-1',
+        canvas: { userId },
+      };
+      const otherCanvasParent = {
+        id: 'parent-1',
+        canvasId: 'canvas-2',
+        type: CanvasNodeType.region,
+      };
+
+      (prisma.canvasNode.findUnique as jest.Mock).mockImplementation((args) => {
+        if (args.where.id === nodeId) return Promise.resolve(existingNode);
+        if (args.where.id === 'parent-1') return Promise.resolve(otherCanvasParent);
+        return Promise.resolve(null);
+      });
+
+      await expect(service.updateNode(userId, nodeId, updateDto)).rejects.toThrow(
+        BadRequestException
       );
     });
   });

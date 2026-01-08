@@ -25,6 +25,9 @@ function App() {
     // Jotai's atomWithStorage is already synchronous,
     // but this ensures isHydrated becomes true for components waiting on it.
     setAuth((prev: AuthState) => ({ ...prev, isHydrated: true }));
+
+    // Enable Arco Design dark theme globally
+    document.body.setAttribute('arco-theme', 'dark');
   }, [setAuth]);
 
   return (

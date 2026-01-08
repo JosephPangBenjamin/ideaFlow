@@ -21,7 +21,7 @@ import { CreateConnectionDto } from './dto/create-connection.dto';
 import { UpdateConnectionDto } from './dto/update-connection.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller('ideaFlow/api/v1/canvases')
+@Controller('canvases')
 export class CanvasesController {
   constructor(private readonly canvasesService: CanvasesService) {}
 
@@ -40,6 +40,20 @@ export class CanvasesController {
     @Query('limit') limit: number = 20
   ) {
     return this.canvasesService.findAll(req.user.id, Number(page), Number(limit));
+  }
+
+  // Canvas V2: 根据想法ID查找画布
+  @UseGuards(JwtAuthGuard)
+  @Get('by-idea/:ideaId')
+  findByIdeaId(@Request() req: any, @Param('ideaId') ideaId: string) {
+    return this.canvasesService.findByIdeaId(req.user.id, ideaId);
+  }
+
+  // Canvas V2: 根据想法ID查找或创建画布
+  @UseGuards(JwtAuthGuard)
+  @Post('by-idea/:ideaId')
+  findOrCreateByIdeaId(@Request() req: any, @Param('ideaId') ideaId: string) {
+    return this.canvasesService.findOrCreateByIdeaId(req.user.id, ideaId);
   }
 
   @UseGuards(JwtAuthGuard)

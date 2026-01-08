@@ -3,8 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Spin, Button, Message } from '@arco-design/web-react';
 import { IconArrowLeft } from '@arco-design/web-react/icon';
 import { CanvasEditor } from './components/CanvasEditor';
-import { CanvasSidebar } from './components/CanvasSidebar';
-import { getCanvas } from './services/canvas.service';
+import { CanvasLibrary } from './components/CanvasLibrary'; // Canvas V2: Horizontal library
+import { getCanvas, getConnections } from './services/canvas.service';
 
 export function CanvasDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,9 +16,15 @@ export function CanvasDetailPage() {
     enabled: !!id,
   });
 
+  const { data: connectionsData } = useQuery({
+    queryKey: ['canvas-connections', id],
+    queryFn: () => getConnections(id!),
+    enabled: !!id,
+  });
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full bg-slate-900">
         <Spin size={40} />
       </div>
     );
@@ -27,7 +33,7 @@ export function CanvasDetailPage() {
   if (error || !data) {
     Message.error('加载画布失败');
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4">
+      <div className="flex flex-col items-center justify-center h-full gap-4 bg-slate-900">
         <p className="text-slate-400">无法加载画布</p>
         <Button onClick={() => navigate('/canvas')}>返回画布列表</Button>
       </div>
@@ -35,24 +41,40 @@ export function CanvasDetailPage() {
   }
 
   const canvas = data.data;
+  const connections = connectionsData?.data || [];
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-slate-900">
-      {/* Header */}
-      <div className="flex items-center gap-4 px-4 py-3 bg-slate-800/80 border-b border-slate-700/50 z-10">
-        <Button type="text" icon={<IconArrowLeft />} onClick={() => navigate('/canvas')}>
+    <div className="h-full flex flex-col overflow-hidden bg-slate-950">
+      {/* Header with Integrated Library */}
+      <div className="flex items-center px-4 h-16 bg-slate-900 border-b border-slate-800 z-10">
+        <Button
+          type="text"
+          icon={<IconArrowLeft />}
+          onClick={() => navigate('/canvas')}
+          className="text-slate-400 hover:text-white"
+        >
           返回
         </Button>
-        <div className="h-4 w-[1px] bg-slate-700" />
-        <h1 className="text-lg font-semibold text-white flex-1 truncate">{canvas.name}</h1>
+        <div className="h-6 w-[1px] bg-slate-700 mx-2" />
+        <div className="flex flex-col min-w-[120px] max-w-[240px]">
+          <h1 className="text-sm font-bold text-white truncate">{canvas.name}</h1>
+          <span className="text-[10px] text-slate-500 font-mono">CANVAS v2</span>
+        </div>
+
+        {/* Horizontal Library Shelf */}
+        <CanvasLibrary />
+
+        {/* Canvas V2: Toolbar Portal Target */}
+        <div id="canvas-toolbar-portal" className="flex items-center ml-auto" />
       </div>
 
-      {/* Main Content Area: Sidebar + Editor */}
-      <div className="flex-1 flex overflow-hidden">
-        <CanvasSidebar />
-        <div className="flex-1 relative bg-slate-900">
-          <CanvasEditor canvas={canvas} initialNodes={canvas.nodes || []} />
-        </div>
+      {/* Full Width Editor Area */}
+      <div className="flex-1 relative bg-slate-950">
+        <CanvasEditor
+          canvas={canvas}
+          initialNodes={canvas.nodes || []}
+          initialConnections={connections}
+        />
       </div>
     </div>
   );

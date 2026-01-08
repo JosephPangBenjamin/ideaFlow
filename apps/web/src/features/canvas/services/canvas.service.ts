@@ -1,9 +1,20 @@
 import { api } from '@/services/api';
 
+// Canvas V2: 节点类型枚举
+export enum CanvasNodeType {
+  master_idea = 'master_idea',
+  sub_idea = 'sub_idea',
+  annotation = 'annotation',
+  image = 'image',
+  region = 'region',
+}
+
 export interface Canvas {
   id: string;
   name: string;
   userId: string;
+  ideaId?: string | null; // Canvas V2
+  idea?: { id: string; content: string } | null; // Canvas V2
   createdAt: string;
   updatedAt: string;
   nodes?: CanvasNode[];
@@ -13,12 +24,16 @@ export interface Canvas {
 export interface CanvasNode {
   id: string;
   canvasId: string;
+  type: CanvasNodeType; // Canvas V2
   ideaId: string | null;
   x: number;
   y: number;
   width: number;
   height: number;
   content?: string | null;
+  imageUrl?: string | null; // Canvas V2
+  color?: string | null;
+  parentId?: string | null;
   idea?: { id: string; content: string } | null;
   createdAt: string;
   updatedAt: string;
@@ -38,6 +53,7 @@ export interface CanvasConnection {
 
 export interface CreateCanvasDto {
   name?: string;
+  ideaId?: string; // Canvas V2
 }
 
 export interface UpdateCanvasDto {
@@ -45,11 +61,16 @@ export interface UpdateCanvasDto {
 }
 
 export interface CreateNodeDto {
-  ideaId: string;
+  type?: CanvasNodeType; // Canvas V2
+  ideaId?: string; // Canvas V2: 现在可选
   x: number;
   y: number;
   width?: number;
   height?: number;
+  content?: string; // Canvas V2
+  imageUrl?: string; // Canvas V2
+  color?: string;
+  parentId?: string;
 }
 
 export interface UpdateNodeDto {
@@ -57,6 +78,10 @@ export interface UpdateNodeDto {
   y?: number;
   width?: number;
   height?: number;
+  content?: string; // Canvas V2
+  imageUrl?: string; // Canvas V2
+  color?: string;
+  parentId?: string | null;
 }
 
 export interface CreateConnectionDto {
@@ -92,6 +117,18 @@ export const getCanvas = async (id: string): Promise<{ data: Canvas }> => {
 
 export const createCanvas = async (data: CreateCanvasDto): Promise<{ data: Canvas }> => {
   const response = await api.post('/canvases', data);
+  return response.data;
+};
+
+// Canvas V2: 根据想法ID查找画布
+export const getCanvasByIdeaId = async (ideaId: string): Promise<{ data: Canvas | null }> => {
+  const response = await api.get(`/canvases/by-idea/${ideaId}`);
+  return response.data;
+};
+
+// Canvas V2: 根据想法ID查找或创建画布
+export const findOrCreateCanvasByIdeaId = async (ideaId: string): Promise<{ data: Canvas }> => {
+  const response = await api.post(`/canvases/by-idea/${ideaId}`);
   return response.data;
 };
 

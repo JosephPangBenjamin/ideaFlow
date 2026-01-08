@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class UpdateNodeDto {
   @IsNumber()
@@ -18,4 +18,20 @@ export class UpdateNodeDto {
   @IsOptional()
   @Min(0)
   height?: number;
+
+  @IsString()
+  @IsOptional()
+  content?: string; // Canvas V2
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string; // Canvas V2
+
+  @IsString()
+  @IsOptional()
+  color?: string;
+
+  @IsString()
+  @IsOptional()
+  parentId?: string | null; // 允许设置为 null 解除关系
 }
