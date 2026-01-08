@@ -33,5 +33,8 @@ export class UpdateNodeDto {
 
   @IsString()
   @IsOptional()
-  parentId?: string | null; // 允许设置为 null 解除关系
+  parentId?: string | null;
+
+  @IsOptional()
+  style?: any;
 }

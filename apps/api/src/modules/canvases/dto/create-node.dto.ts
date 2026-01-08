@@ -41,4 +41,7 @@ export class CreateNodeDto {
   @IsString()
   @IsOptional()
   parentId?: string; // 层级关系（父节点ID）
+
+  @IsOptional()
+  style?: any;
 }

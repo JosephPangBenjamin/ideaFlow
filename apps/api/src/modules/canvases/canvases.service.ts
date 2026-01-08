@@ -270,6 +270,7 @@ export class CanvasesService {
         imageUrl: createNodeDto.imageUrl,
         color: createNodeDto.color,
         parentId: createNodeDto.parentId,
+        style: createNodeDto.style,
       },
       include: {
         idea: {
@@ -342,7 +343,10 @@ export class CanvasesService {
 
     const updatedNode = await this.prisma.canvasNode.update({
       where: { id: nodeId },
-      data: updateNodeDto,
+      data: {
+        ...updateNodeDto,
+        style: updateNodeDto.style,
+      },
       include: {
         idea: {
           select: {
