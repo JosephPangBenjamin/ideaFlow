@@ -13,17 +13,13 @@ import {
   DatePicker,
   Message,
 } from '@arco-design/web-react';
-import {
-  IconArrowLeft,
-  IconCheckCircle,
-  IconClockCircle,
-  IconTag,
-  IconCalendar,
-} from '@arco-design/web-react/icon';
+import { IconArrowLeft, IconClockCircle, IconTag, IconCalendar } from '@arco-design/web-react/icon';
 import { tasksService, TaskStatus } from './services/tasks.service';
 import { formatFullTime } from '../../utils/date';
-import { TaskDueDateBadge } from './components/TaskDueDateBadge';
+import { TaskDueDateBadge } from './components/task-due-date-badge';
+import { TaskStatusSelect } from './components/task-status-select';
 import dayjs from 'dayjs';
+import { getDueDateStatus } from './utils/task-utils';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -51,8 +47,6 @@ const TaskDetail: React.FC = () => {
         Message.success('截止日期已清除');
       } else if (variables.dueDate) {
         Message.success('截止日期已更新');
-      } else {
-        Message.success('任务状态已更新');
       }
     },
     onError: () => {
@@ -81,19 +75,11 @@ const TaskDetail: React.FC = () => {
     );
   }
 
-  const handleStatusChange = () => {
-    const nextStatus =
-      task.status === TaskStatus.done
-        ? TaskStatus.todo
-        : task.status === TaskStatus.todo
-          ? TaskStatus.in_progress
-          : TaskStatus.done;
-    updateTaskMutation.mutate({ status: nextStatus });
-  };
-
   const handleDateChange = (dateStr: string | null) => {
     updateTaskMutation.mutate({ dueDate: dateStr || null });
   };
+
+  const isDone = task.status === TaskStatus.done;
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
@@ -107,23 +93,16 @@ const TaskDetail: React.FC = () => {
       <div className="flex items-center justify-between mb-8">
         <Space size={16}>
           <Button type="text" icon={<IconArrowLeft />} onClick={() => navigate(-1)} />
-          <Title heading={3} style={{ margin: 0 }}>
+          <Title
+            heading={3}
+            style={{ margin: 0 }}
+            className={isDone ? 'line-through text-slate-500 opacity-60' : ''}
+          >
             {task.title}
           </Title>
         </Space>
 
-        <Tag
-          color={task.status === TaskStatus.done ? 'green' : 'arcoblue'}
-          icon={<IconCheckCircle />}
-          className="cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={handleStatusChange}
-        >
-          {task.status === TaskStatus.done
-            ? '已完成'
-            : task.status === TaskStatus.in_progress
-              ? '进行中'
-              : '待办'}
-        </Tag>
+        <TaskStatusSelect taskId={task.id} currentStatus={task.status} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -133,7 +112,9 @@ const TaskDetail: React.FC = () => {
               <Text type="secondary" className="block mb-2">
                 任务描述
               </Text>
-              <Paragraph className="text-slate-300">{task.description || '暂无描述'}</Paragraph>
+              <Paragraph className={`text-slate-300 ${isDone ? 'opacity-60' : ''}`}>
+                {task.description || '暂无描述'}
+              </Paragraph>
             </div>
 
             {task.idea && (
@@ -171,15 +152,14 @@ const TaskDetail: React.FC = () => {
                         size="small"
                         type="secondary"
                         icon={<IconCalendar />}
-                        className={`w-full text-left justify-start ${
-                          task.dueDate
-                            ? dayjs(task.dueDate).isBefore(dayjs())
-                              ? 'text-red-500 font-medium'
-                              : dayjs(task.dueDate).diff(dayjs(), 'day') <= 3
-                                ? 'text-orange-500 font-medium'
-                                : ''
-                            : ''
-                        }`}
+                        className={`w-full text-left justify-start ${(() => {
+                          const status = getDueDateStatus(task.dueDate);
+                          if (status === 'overdue' && !isDone) return 'text-red-500 font-medium';
+                          if (status === 'approaching' && !isDone)
+                            return 'text-orange-500 font-medium';
+                          if (isDone) return 'opacity-50 text-slate-500';
+                          return '';
+                        })()}`}
                       >
                         {task.dueDate
                           ? dayjs(task.dueDate).format('YYYY-MM-DD HH:mm')
@@ -189,7 +169,7 @@ const TaskDetail: React.FC = () => {
                   />
                   {task.dueDate && (
                     <div className="flex items-center gap-2">
-                      <TaskDueDateBadge dueDate={task.dueDate} />
+                      <TaskDueDateBadge dueDate={task.dueDate} status={task.status} />
                       <Button
                         size="mini"
                         type="text"
@@ -209,7 +189,7 @@ const TaskDetail: React.FC = () => {
                   <IconTag className="mr-2" />
                   分类
                 </Text>
-                <Tag>{task.category || '未分类'}</Tag>
+                <Tag className={isDone ? 'opacity-60' : ''}>{task.category || '未分类'}</Tag>
               </div>
 
               <div>

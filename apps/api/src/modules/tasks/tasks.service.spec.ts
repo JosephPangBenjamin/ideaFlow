@@ -131,5 +131,27 @@ describe('TasksService', () => {
         include: { idea: true },
       });
     });
+
+    it('should update task status', async () => {
+      const userId = 'user-1';
+      const taskId = 'task-1';
+      const dto = { status: TaskStatus.in_progress };
+      const task = { id: taskId, userId, status: TaskStatus.todo };
+
+      mockPrismaService.task.findUnique.mockResolvedValue(task);
+      mockPrismaService.task.update.mockResolvedValue({ ...task, status: TaskStatus.in_progress });
+
+      const result = await service.update(userId, taskId, dto);
+
+      expect(result.data.status).toBe(TaskStatus.in_progress);
+      expect(mockPrismaService.task.update).toHaveBeenCalledWith({
+        where: { id: taskId },
+        data: {
+          status: TaskStatus.in_progress,
+          dueDate: undefined,
+        },
+        include: { idea: true },
+      });
+    });
   });
 });

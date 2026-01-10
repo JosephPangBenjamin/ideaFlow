@@ -3,34 +3,17 @@ import { Tag, Tooltip } from '@arco-design/web-react';
 import { IconClockCircle, IconExclamationCircle, IconHistory } from '@arco-design/web-react/icon';
 import dayjs from 'dayjs';
 import { formatFullTime } from '../../../utils/date';
-
-export type DueDateStatus = 'none' | 'normal' | 'approaching' | 'overdue';
-
-const APPROACHING_THRESHOLD_DAYS = 3;
+import { DueDateStatus, getDueDateStatus } from '../utils/task-utils';
+import { TaskStatus } from '../services/tasks.service';
 
 interface TaskDueDateBadgeProps {
   dueDate: string | null | undefined;
+  status?: TaskStatus;
   showIcon?: boolean;
 }
 
-const getDueDateStatus = (dueDate: string | null | undefined, now: dayjs.Dayjs): DueDateStatus => {
-  if (!dueDate) return 'none';
-  const due = dayjs(dueDate);
-
-  if (due.isBefore(now)) {
-    return 'overdue';
-  }
-
-  const diffDays = due.diff(now, 'day');
-  if (diffDays <= APPROACHING_THRESHOLD_DAYS) {
-    return 'approaching';
-  }
-
-  return 'normal';
-};
-
 export const TaskDueDateBadge: React.FC<TaskDueDateBadgeProps> = React.memo(
-  ({ dueDate, showIcon = true }) => {
+  ({ dueDate, status, showIcon = true }) => {
     const [now, setNow] = React.useState(() => dayjs());
 
     React.useEffect(() => {
@@ -40,30 +23,29 @@ export const TaskDueDateBadge: React.FC<TaskDueDateBadgeProps> = React.memo(
       return () => clearInterval(timer);
     }, []);
 
-    const status = useMemo(() => getDueDateStatus(dueDate, now), [dueDate, now]);
+    const dueDateStatus = useMemo(() => getDueDateStatus(dueDate, now), [dueDate, now]);
 
-    if (status === 'none') return null;
+    if (dueDateStatus === 'none') return null;
+
+    const isDone = status === TaskStatus.done;
 
     const config = {
       normal: {
-        color: 'gray',
+        color: isDone ? 'gray' : 'gray',
         icon: <IconClockCircle />,
-        text: '截止',
-        className: 'text-slate-400',
+        className: isDone ? 'text-slate-500 opacity-50' : 'text-slate-400',
       },
       approaching: {
-        color: 'orange',
+        color: isDone ? 'gray' : 'orange',
         icon: <IconExclamationCircle />,
-        text: '即将截止',
-        className: 'text-orange-500 font-medium',
+        className: isDone ? 'text-slate-500 opacity-50' : 'text-orange-500 font-medium',
       },
       overdue: {
-        color: 'red',
+        color: isDone ? 'gray' : 'red',
         icon: <IconHistory />,
-        text: '已逾期',
-        className: 'text-red-500 font-bold',
+        className: isDone ? 'text-slate-500 opacity-50' : 'text-red-500 font-bold',
       },
-    }[status as Exclude<DueDateStatus, 'none'>];
+    }[dueDateStatus as Exclude<DueDateStatus, 'none'>];
 
     const displayDate = useMemo(() => {
       const due = dayjs(dueDate);

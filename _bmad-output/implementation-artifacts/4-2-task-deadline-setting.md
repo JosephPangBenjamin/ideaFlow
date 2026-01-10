@@ -56,6 +56,11 @@ so that **按时完成任务**.
 
 - [x] Task 3: Frontend - TaskCard 视觉增强 (AC: #3, #4)
   - [x] 3.1 创建 `TaskDueDateBadge.tsx` 组件
+  - [x] UI: Added TaskDueDateBadge component with status colors
+- [x] UI: Integrated DatePicker in TaskDetail
+- [x] Fix: Refactored deadline logic into shared `task-utils.ts` (Code Review)
+- [x] Fix: Updated DTO to support `null` for clearing deadlines (Code Review)
+- [x] Fix: Unified visual feedback logic between Badge and Detail button (Code Review)
   - [x] 3.2 使用变量 `APPROACHING_THRESHOLD_DAYS = 3` 实现状态逻辑
   - [x] 3.3 确保组件使用 `React.memo` 优化性能
   - [x] 3.4 适配不同视图（列表页/详情页）

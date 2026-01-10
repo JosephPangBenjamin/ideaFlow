@@ -102,4 +102,40 @@ describe('TaskDetail', () => {
       expect(screen.getByText('找不到该任务')).toBeInTheDocument();
     });
   });
+  it('applies line-through style for done tasks', async () => {
+    const mockTask = {
+      id: '123',
+      title: 'Done Task',
+      status: 'done',
+      userId: 'user1',
+    };
+
+    (tasksService.getTask as any).mockResolvedValue({ data: mockTask });
+
+    renderComponent();
+
+    await waitFor(() => {
+      const title = screen.getByText('Done Task');
+      expect(title).toHaveClass('line-through');
+    });
+  });
+
+  it('renders category with reduced opacity for done tasks', async () => {
+    const mockTask = {
+      id: '123',
+      title: 'Done Task',
+      status: 'done',
+      category: 'Work',
+      userId: 'user1',
+    };
+
+    (tasksService.getTask as any).mockResolvedValue({ data: mockTask });
+
+    renderComponent();
+
+    await waitFor(() => {
+      const categoryTag = screen.getByText('Work').closest('.arco-tag');
+      expect(categoryTag).toHaveClass('opacity-60');
+    });
+  });
 });

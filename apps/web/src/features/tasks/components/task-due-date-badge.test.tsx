@@ -3,23 +3,7 @@ import dayjs from 'dayjs';
 // We'll test the logic by mocking the component or just testing the pure parts if we extract them.
 // For now, let's just use dayjs to verify the same logic we have in the component.
 
-const APPROACHING_THRESHOLD_DAYS = 3;
-
-const getDueDateStatus = (dueDate: string | null | undefined, now: dayjs.Dayjs): string => {
-  if (!dueDate) return 'none';
-  const due = dayjs(dueDate);
-
-  if (due.isBefore(now, 'day')) {
-    return 'overdue';
-  }
-
-  const diffDays = due.diff(now, 'day');
-  if (diffDays <= APPROACHING_THRESHOLD_DAYS) {
-    return 'approaching';
-  }
-
-  return 'normal';
-};
+import { getDueDateStatus } from '../utils/task-utils';
 
 describe('getDueDateStatus logic', () => {
   const now = dayjs('2026-01-10T12:00:00Z');

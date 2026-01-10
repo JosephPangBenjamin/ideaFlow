@@ -1,10 +1,12 @@
+import React from 'react';
 import { Card, Tag, Space, Empty, Skeleton } from '@arco-design/web-react';
 import { motion } from 'framer-motion';
-import { IconCheckCircle } from '@arco-design/web-react/icon';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { tasksService, TaskStatus } from './services/tasks.service';
-import { TaskDueDateBadge } from './components/TaskDueDateBadge';
+import { tasksService } from './services/tasks.service';
+import { TaskDueDateBadge } from './components/task-due-date-badge';
+import { TaskStatusSelect } from './components/task-status-select';
+import { STATUS_CONFIG } from './components/task-status-badge';
 
 export function Tasks() {
   const navigate = useNavigate();
@@ -40,47 +42,27 @@ export function Tasks() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05 }}
-            onClick={() => navigate(`/tasks/${task.id}`)}
             className="cursor-pointer"
           >
             <Card
               className="bg-slate-800/50 backdrop-blur-sm border-slate-700/50 rounded-2xl hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10"
               bordered={false}
+              onClick={() => navigate(`/tasks/${task.id}`)}
             >
               <div className="flex items-start gap-4">
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                    task.status === TaskStatus.done ? 'bg-green-500/20' : 'bg-purple-500/20'
-                  }`}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${STATUS_CONFIG[task.status].bgSubtle}`}
                 >
-                  <IconCheckCircle
-                    className={
-                      task.status === TaskStatus.done
-                        ? 'text-green-400 text-xl'
-                        : 'text-purple-400 text-xl'
-                    }
-                  />
+                  {React.cloneElement(STATUS_CONFIG[task.status].icon as React.ReactElement, {
+                    className: `${STATUS_CONFIG[task.status].textSubtle} text-xl`,
+                  })}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-1 gap-2">
                     <h3 className="text-lg font-semibold text-white truncate">{task.title}</h3>
-                    <Tag
-                      size="small"
-                      color={
-                        task.status === TaskStatus.done
-                          ? 'green'
-                          : task.status === TaskStatus.in_progress
-                            ? 'blue'
-                            : 'orange'
-                      }
-                      bordered
-                    >
-                      {task.status === TaskStatus.done
-                        ? '完成'
-                        : task.status === TaskStatus.in_progress
-                          ? '进行中'
-                          : '待办'}
-                    </Tag>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <TaskStatusSelect taskId={task.id} currentStatus={task.status} />
+                    </div>
                   </div>
 
                   <p className="text-slate-400 text-sm mb-3 line-clamp-2 min-h-[3rem]">
@@ -95,7 +77,7 @@ export function Tasks() {
                         </Tag>
                       )}
                     </Space>
-                    <TaskDueDateBadge dueDate={task.dueDate} />
+                    <TaskDueDateBadge dueDate={task.dueDate} status={task.status} />
                   </div>
                 </div>
               </div>

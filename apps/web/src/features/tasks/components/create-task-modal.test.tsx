@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { CreateTaskModal } from './CreateTaskModal';
+import { CreateTaskModal } from './create-task-modal';
 import { tasksService, TaskStatus } from '../services/tasks.service';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
