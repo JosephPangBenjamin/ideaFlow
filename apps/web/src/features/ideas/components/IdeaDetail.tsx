@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Input, Button, Message, Modal } from '@arco-design/web-react';
+import { Input, Button, Message, Modal, Tag } from '@arco-design/web-react';
 import {
   IconEdit,
   IconCheck,
@@ -8,9 +8,11 @@ import {
   IconLoading,
   IconDelete,
   IconApps,
+  IconCheckCircle,
 } from '@arco-design/web-react/icon';
 import { useNavigate } from 'react-router-dom';
 import { findOrCreateCanvasByIdeaId } from '@/features/canvas/services/canvas.service';
+import { CreateTaskModal } from '@/features/tasks/components/CreateTaskModal';
 import { formatFullTime } from '../../../utils/date';
 import { Idea } from '../types';
 import { SourcePreview } from './SourcePreview';
@@ -31,6 +33,10 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
+
+  const hasTask = (idea.tasks?.length ?? 0) > 0;
+  const taskStatus = hasTask ? idea.tasks?.[0]?.status : null;
 
   // Canvas V2: 进入画布
   const canvasMutation = useMutation({
@@ -227,6 +233,25 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
           {renderSaveStatus()}
           {!isEditing && (
             <>
+              {hasTask ? (
+                <Tag
+                  color={taskStatus === 'done' ? 'green' : 'arcoblue'}
+                  icon={<IconCheckCircle />}
+                  className="mr-2 cursor-pointer hover:opacity-80"
+                  onClick={() => navigate(`/tasks/${idea.tasks?.[0]?.id}`)}
+                >
+                  已转任务 {taskStatus === 'done' ? '(已完成)' : ''}
+                </Tag>
+              ) : (
+                <Button
+                  type="text"
+                  icon={<IconCheckCircle />}
+                  onClick={() => setIsTaskModalVisible(true)}
+                  className="text-slate-400 hover:text-purple-500"
+                >
+                  转为任务
+                </Button>
+              )}
               <Button
                 type="text"
                 icon={<IconApps />}
@@ -301,6 +326,21 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
           <SourcePreview source={idea.source} />
         </div>
       )}
+
+      <CreateTaskModal
+        visible={isTaskModalVisible}
+        ideaId={idea.id}
+        initialTitle={idea.content.length > 50 ? idea.content.slice(0, 47) + '...' : idea.content}
+        onCancel={() => setIsTaskModalVisible(false)}
+        onSuccess={(taskId) => {
+          setIsTaskModalVisible(false);
+          if (taskId) {
+            // Determine if we wait for confetti or navigate immediately -
+            // Modal handles confetti delay before calling onSuccess, so we can navigate now
+            navigate(`/tasks/${taskId}`);
+          }
+        }}
+      />
     </div>
   );
 };

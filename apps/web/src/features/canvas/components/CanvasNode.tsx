@@ -276,6 +276,21 @@ function CanvasNodeComponent({
         <Text text="📌 主想法" fill="#f59e0b" fontSize={10} x={8} y={4} listening={false} />
       )}
 
+      {/* Task Status Icon */}
+      {node.idea?.tasks && node.idea.tasks.length > 0 && (
+        <Group x={node.width - 24} y={4} listening={false}>
+          {/* Background circle for icon visibility */}
+          <Circle radius={7} fill="#1e293b" />
+          {/* Status color indicator */}
+          <Circle
+            radius={5}
+            fill={node.idea.tasks[0]?.status === 'done' ? '#10b981' : '#3b82f6'}
+            stroke="#ffffff"
+            strokeWidth={1}
+          />
+        </Group>
+      )}
+
       {/* Image content for image type */}
       {nodeType === NodeTypeEnum.image && node.imageUrl ? (
         <ImageContent url={node.imageUrl} width={node.width} height={node.height} />
@@ -339,6 +354,9 @@ export const CanvasNode = React.memo(CanvasNodeComponent, (prev, next) => {
     prev.node.content === next.node.content &&
     prev.node.color === next.node.color &&
     prev.node.imageUrl === next.node.imageUrl &&
+    // Check for task updates (status change or new task)
+    prev.node.idea?.tasks?.[0]?.status === next.node.idea?.tasks?.[0]?.status &&
+    prev.node.idea?.tasks?.length === next.node.idea?.tasks?.length &&
     shallowEqualStyle(prev.node.style, next.node.style)
   );
 });

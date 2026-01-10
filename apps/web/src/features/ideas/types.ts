@@ -12,6 +12,7 @@ export interface Idea {
   content: string;
   source?: IdeaSource;
   userId: string;
+  tasks?: Array<{ id: string; status: string }>;
   createdAt: string;
   updatedAt: string;
 }

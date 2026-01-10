@@ -14,7 +14,7 @@ export interface Canvas {
   name: string;
   userId: string;
   ideaId?: string | null; // Canvas V2
-  idea?: { id: string; content: string } | null; // Canvas V2
+  idea?: { id: string; content: string; tasks?: Array<{ id: string; status: string }> } | null;
   createdAt: string;
   updatedAt: string;
   nodes?: CanvasNode[];
@@ -34,7 +34,7 @@ export interface CanvasNode {
   imageUrl?: string | null; // Canvas V2
   color?: string | null;
   parentId?: string | null;
-  idea?: { id: string; content: string } | null;
+  idea?: { id: string; content: string; tasks?: Array<{ id: string; status: string }> } | null;
   createdAt: string;
   updatedAt: string;
   style?: any;

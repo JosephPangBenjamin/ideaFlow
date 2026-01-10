@@ -13,6 +13,9 @@ const Ideas = lazy(() =>
 const Tasks = lazy(() =>
   import('@/features/tasks/Tasks').then((module) => ({ default: module.Tasks }))
 );
+const TaskDetail = lazy(() =>
+  import('@/features/tasks/TaskDetail').then((module) => ({ default: module.default }))
+);
 const CanvasDetailPage = lazy(() =>
   import('@/features/canvas/CanvasDetailPage').then((module) => ({
     default: module.CanvasDetailPage,
@@ -75,6 +78,10 @@ export function AppRoutes() {
         {
           path: 'tasks',
           element: <Tasks />,
+        },
+        {
+          path: 'tasks/:id',
+          element: <TaskDetail />,
         },
         {
           path: 'canvas',

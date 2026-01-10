@@ -23,6 +23,14 @@ export class IdeasService {
     const [data, total] = await Promise.all([
       this.prisma.idea.findMany({
         where: { userId },
+        include: {
+          tasks: {
+            select: {
+              id: true,
+              status: true,
+            },
+          },
+        },
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -46,6 +54,19 @@ export class IdeasService {
   async findOne(userId: string, ideaId: string) {
     const idea = await this.prisma.idea.findUnique({
       where: { id: ideaId },
+      include: {
+        tasks: {
+          select: {
+            id: true,
+            status: true,
+            title: true,
+            description: true,
+            category: true,
+            dueDate: true,
+            createdAt: true,
+          },
+        },
+      },
     });
 
     if (!idea || idea.userId !== userId) {

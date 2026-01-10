@@ -33,7 +33,7 @@ export class UsersController {
       data: {
         id: user.id,
         username: user.username,
-        phone: user.phone,
+        phone: user.phone ? user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : null,
         nickname: user.nickname,
         avatarUrl: (user as any).avatarUrl,
         createdAt: user.createdAt,
@@ -56,7 +56,9 @@ export class UsersController {
       data: {
         id: updatedUser.id,
         username: updatedUser.username,
-        phone: updatedUser.phone,
+        phone: updatedUser.phone
+          ? updatedUser.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
+          : null,
         nickname: updatedUser.nickname,
         avatarUrl: (updatedUser as any).avatarUrl,
         createdAt: updatedUser.createdAt,

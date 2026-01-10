@@ -98,6 +98,14 @@ describe('IdeasService', () => {
 
       expect(prisma.idea.findMany).toHaveBeenCalledWith({
         where: { userId },
+        include: {
+          tasks: {
+            select: {
+              id: true,
+              status: true,
+            },
+          },
+        },
         skip: 0,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -135,6 +143,19 @@ describe('IdeasService', () => {
 
       expect(prisma.idea.findUnique).toHaveBeenCalledWith({
         where: { id: ideaId },
+        include: {
+          tasks: {
+            select: {
+              id: true,
+              status: true,
+              title: true,
+              description: true,
+              category: true,
+              dueDate: true,
+              createdAt: true,
+            },
+          },
+        },
       });
       expect(result).toEqual({ data: expectedIdea });
     });
