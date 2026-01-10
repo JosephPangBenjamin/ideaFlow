@@ -13,7 +13,7 @@ export class TasksService {
         title: createTaskDto.title,
         description: createTaskDto.description,
         category: createTaskDto.category,
-        dueDate: createTaskDto.dueDate ? new Date(createTaskDto.dueDate) : undefined,
+        dueDate: this.prepareDueDate(createTaskDto.dueDate),
         ideaId: createTaskDto.ideaId,
         userId,
       },
@@ -69,17 +69,18 @@ export class TasksService {
       where: { id: taskId },
       data: {
         ...updateTaskDto,
-        dueDate:
-          updateTaskDto.dueDate === null
-            ? null
-            : updateTaskDto.dueDate
-              ? new Date(updateTaskDto.dueDate)
-              : undefined,
+        dueDate: this.prepareDueDate(updateTaskDto.dueDate),
       },
       include: { idea: true },
     });
 
     return { data: updatedTask };
+  }
+
+  private prepareDueDate(dueDate: string | null | undefined): Date | null | undefined {
+    if (dueDate === null) return null;
+    if (dueDate === undefined) return undefined;
+    return new Date(dueDate);
   }
 
   async remove(userId: string, taskId: string) {

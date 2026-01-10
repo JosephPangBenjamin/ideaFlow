@@ -85,7 +85,7 @@ development_status:
   # ===========================================
   epic-4: in-progress
   4-1-idea-to-task-conversion: done
-  4-2-task-deadline-setting: in-progress
+  4-2-task-deadline-setting: done
   4-3-task-status-management: backlog
   4-4-task-category-management: backlog
   4-5-task-list-filter-view: backlog

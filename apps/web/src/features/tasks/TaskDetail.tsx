@@ -45,9 +45,15 @@ const TaskDetail: React.FC = () => {
   const updateTaskMutation = useMutation({
     mutationFn: (updates: { status?: TaskStatus; dueDate?: string | null }) =>
       tasksService.updateTask(id!, updates),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['task', id] });
-      Message.success('任务已更新');
+      if (variables.dueDate === null) {
+        Message.success('截止日期已清除');
+      } else if (variables.dueDate) {
+        Message.success('截止日期已更新');
+      } else {
+        Message.success('任务状态已更新');
+      }
     },
     onError: () => {
       Message.error('更新失败，请重试');
@@ -165,7 +171,15 @@ const TaskDetail: React.FC = () => {
                         size="small"
                         type="secondary"
                         icon={<IconCalendar />}
-                        className="w-full text-left justify-start"
+                        className={`w-full text-left justify-start ${
+                          task.dueDate
+                            ? dayjs(task.dueDate).isBefore(dayjs())
+                              ? 'text-red-500 font-medium'
+                              : dayjs(task.dueDate).diff(dayjs(), 'day') <= 3
+                                ? 'text-orange-500 font-medium'
+                                : ''
+                            : ''
+                        }`}
                       >
                         {task.dueDate
                           ? dayjs(task.dueDate).format('YYYY-MM-DD HH:mm')
@@ -173,7 +187,20 @@ const TaskDetail: React.FC = () => {
                       </Button>
                     }
                   />
-                  {task.dueDate && <TaskDueDateBadge dueDate={task.dueDate} />}
+                  {task.dueDate && (
+                    <div className="flex items-center gap-2">
+                      <TaskDueDateBadge dueDate={task.dueDate} />
+                      <Button
+                        size="mini"
+                        type="text"
+                        status="danger"
+                        onClick={() => handleDateChange(null)}
+                        className="text-xs"
+                      >
+                        清除
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
 

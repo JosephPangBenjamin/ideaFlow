@@ -13,12 +13,11 @@ interface TaskDueDateBadgeProps {
   showIcon?: boolean;
 }
 
-const getDueDateStatus = (dueDate: string | null | undefined): DueDateStatus => {
+const getDueDateStatus = (dueDate: string | null | undefined, now: dayjs.Dayjs): DueDateStatus => {
   if (!dueDate) return 'none';
   const due = dayjs(dueDate);
-  const now = dayjs();
 
-  if (due.isBefore(now, 'day')) {
+  if (due.isBefore(now)) {
     return 'overdue';
   }
 
@@ -32,7 +31,16 @@ const getDueDateStatus = (dueDate: string | null | undefined): DueDateStatus => 
 
 export const TaskDueDateBadge: React.FC<TaskDueDateBadgeProps> = React.memo(
   ({ dueDate, showIcon = true }) => {
-    const status = useMemo(() => getDueDateStatus(dueDate), [dueDate]);
+    const [now, setNow] = React.useState(() => dayjs());
+
+    React.useEffect(() => {
+      const timer = setInterval(() => {
+        setNow(dayjs());
+      }, 60000); // 每分钟更新一次
+      return () => clearInterval(timer);
+    }, []);
+
+    const status = useMemo(() => getDueDateStatus(dueDate, now), [dueDate, now]);
 
     if (status === 'none') return null;
 
@@ -57,6 +65,12 @@ export const TaskDueDateBadge: React.FC<TaskDueDateBadgeProps> = React.memo(
       },
     }[status as Exclude<DueDateStatus, 'none'>];
 
+    const displayDate = useMemo(() => {
+      const due = dayjs(dueDate);
+      const isThisYear = due.isSame(now, 'year');
+      return isThisYear ? due.format('MM-DD HH:mm') : due.format('YYYY-MM-DD');
+    }, [dueDate, now]);
+
     return (
       <Tooltip content={formatFullTime(dueDate!)}>
         <Tag
@@ -66,7 +80,7 @@ export const TaskDueDateBadge: React.FC<TaskDueDateBadgeProps> = React.memo(
           icon={showIcon ? config.icon : null}
           className={`bg-transparent ${config.className}`}
         >
-          {dayjs(dueDate).format('MM-DD')}
+          {displayDate}
         </Tag>
       </Tooltip>
     );
