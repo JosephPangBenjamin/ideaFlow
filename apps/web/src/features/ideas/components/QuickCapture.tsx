@@ -16,9 +16,10 @@ export const QuickCapture = () => {
   const { track } = useAnalytics();
   const setIdeas = useSetAtom(ideasAtom);
   const [content, setContent] = useState('');
-  const [source, setSource] = useState<IdeaSource | undefined>();
+  const [sources, setSources] = useState<IdeaSource[]>([]);
   const [showSource, setShowSource] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSourceLoading, setIsSourceLoading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export const QuickCapture = () => {
       setTimeout(() => inputRef.current?.focus(), 50);
     } else {
       setContent('');
-      setSource(undefined);
+      setSources([]);
       setShowSource(false);
     }
   }, [isOpen]);
@@ -38,7 +39,7 @@ export const QuickCapture = () => {
     try {
       const newIdea = await ideasService.createIdea({
         content,
-        source,
+        sources: sources.length > 0 ? sources : undefined,
       });
 
       track('idea_created');
@@ -55,7 +56,7 @@ export const QuickCapture = () => {
 
       setIsOpen(false);
       setContent('');
-      setSource(undefined);
+      setSources([]);
       setShowSource(false);
     } catch (error) {
       Message.error('保存失败，请重试');
@@ -92,16 +93,16 @@ export const QuickCapture = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-lg bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-lg min-h-[400px] bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
           >
-            <div className="p-1">
+            <div className="p-1 flex-1 flex flex-col">
               <textarea
                 ref={inputRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="记录一个想法..."
-                className="w-full h-32 p-4 bg-transparent text-lg text-slate-100 placeholder:text-slate-500 border-none focus:ring-0 resize-none outline-none"
+                className="w-full h-24 p-4 bg-transparent text-lg text-slate-100 placeholder:text-slate-500 border-none focus:ring-0 resize-none outline-none"
                 disabled={isSubmitting}
               />
 
@@ -111,9 +112,13 @@ export const QuickCapture = () => {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden px-4 mb-2"
+                    className="overflow-hidden px-4 mb-2 flex-1"
                   >
-                    <SourceInput value={source} onChange={setSource} />
+                    <SourceInput
+                      value={sources}
+                      onChange={setSources}
+                      onLoadingChange={setIsSourceLoading}
+                    />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -127,13 +132,13 @@ export const QuickCapture = () => {
                 <button
                   onClick={() => setShowSource(!showSource)}
                   className={`flex items-center space-x-1 px-2 py-1 text-xs rounded transition-colors ${
-                    showSource || source
+                    showSource || sources.length > 0
                       ? 'bg-slate-700 text-blue-400'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
                   }`}
                 >
                   <IconPlus />
-                  <span>{source ? '已添加来源' : '添加来源'}</span>
+                  <span>{sources.length > 0 ? `已添加 ${sources.length} 个来源` : '添加来源'}</span>
                 </button>
               </div>
 
@@ -146,7 +151,7 @@ export const QuickCapture = () => {
                 </button>
                 <button
                   onClick={handleSubmit}
-                  disabled={!content.trim() || isSubmitting}
+                  disabled={!content.trim() || isSubmitting || isSourceLoading}
                   className="flex items-center space-x-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   {isSubmitting ? (

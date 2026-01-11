@@ -606,6 +606,12 @@ export function CanvasEditor({
         return;
       }
 
+      // Readonly nodes (sources) cannot be edited
+      if ((node as any).style?.readonly) {
+        Message.info('只读节点不可编辑');
+        return;
+      }
+
       setEditingNodeId(nodeId);
       setIsDrawerVisible(true);
 
@@ -891,10 +897,18 @@ export function CanvasEditor({
         // Delete selected node
         if (selectedNodeId) {
           const nodeToDelete = nodes.find((n) => n.id === selectedNodeId);
-          if (nodeToDelete?.type === NodeTypeEnum.master_idea) {
+          if (!nodeToDelete) return;
+
+          if (nodeToDelete.type === NodeTypeEnum.master_idea) {
             Message.warning('主想法节点不可删除');
             return;
           }
+
+          if ((nodeToDelete as any).style?.readonly) {
+            Message.warning('该节点为只读，无法删除');
+            return;
+          }
+
           Modal.confirm({
             title: '确定删除此节点吗？',
             content: '相关的连线也将被删除。',
@@ -926,6 +940,19 @@ export function CanvasEditor({
           });
         } else if (selectedConnectionId) {
           // Delete selected connection
+          const conn = connections.find((c) => c.id === selectedConnectionId);
+          if (conn) {
+            const fromNode = nodes.find((n) => n.id === conn.fromNodeId);
+            const toNode = nodes.find((n) => n.id === conn.toNodeId);
+            const isReadonlyConnection =
+              (fromNode as any)?.style?.readonly || (toNode as any)?.style?.readonly;
+
+            if (isReadonlyConnection) {
+              Message.warning('无法删除与只读节点关联的连线');
+              return;
+            }
+          }
+
           Modal.confirm({
             title: '确定删除这条连线吗？',
             okText: '确定',
@@ -953,10 +980,13 @@ export function CanvasEditor({
     selectedNodeId,
     nodes,
     selectedConnectionId,
+    connections,
     setNodes,
     setConnections,
     setSelectedNodeId,
     setSelectedConnectionId,
+    deleteNode, // Assuming deleteNode is a dependency
+    deleteConnection, // Assuming deleteConnection is a dependency
   ]);
 
   // Attach transformer to selected node

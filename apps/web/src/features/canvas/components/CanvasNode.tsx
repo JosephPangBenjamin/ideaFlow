@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Group, Rect, Text, Circle, Image as KonvaImage } from 'react-konva';
+import { Group, Rect, Text, Circle, Image as KonvaImage, Path } from 'react-konva';
 import {
   CanvasNode as CanvasNodeType,
   CanvasNodeType as NodeTypeEnum,
@@ -132,12 +132,17 @@ function CanvasNodeComponent({
     textColor: customStyle.textColor || baseStyle.textColor,
     fontSize: customStyle.fontSize || (nodeType === NodeTypeEnum.region ? 12 : 14),
     backgroundImage: customStyle.backgroundImage || null,
+    // Readonly nodes should still be movable (User request)
+    draggable: baseStyle.draggable ?? true,
   };
 
+  const isReadonly = !!customStyle.readonly;
+  // User Requirement: Readonly nodes (sources) should be movable (draggable) but not editable/deletable.
+  // So we remove !isReadonly from dragging logic.
   const canDrag = style.draggable && !isConnectingFrom;
 
   const handleDragEnd = (e: any) => {
-    if (!style.draggable) return;
+    if (!canDrag) return;
     const newX = e.target.x();
     const newY = e.target.y();
     onDragEnd?.(node.id, newX, newY);
@@ -197,11 +202,26 @@ function CanvasNodeComponent({
   // Canvas V2: 获取节点显示内容
   const getNodeContent = () => {
     if (nodeType === NodeTypeEnum.master_idea || nodeType === NodeTypeEnum.sub_idea) {
-      return (
+      const content =
         node.content ||
         node.idea?.content ||
-        (nodeType === NodeTypeEnum.master_idea ? '主想法' : '双击编辑')
-      );
+        (nodeType === NodeTypeEnum.master_idea ? '主想法' : '双击编辑');
+
+      // Special rendering for Link Source Nodes
+      if (customStyle.isSource && customStyle.sourceType === 'link' && customStyle.sourceUrl) {
+        // We can't render complex HTML/JSX inside Konva Text easily without getting messy.
+        // Konva Text is simple string.
+        // Strategy: If it's a link, we might want to append the URL or just show the URL if content is empty.
+        // But user wants to see the link address.
+        // Let's format it: "Title\nURL"
+        try {
+          const urlObj = new URL(customStyle.sourceUrl);
+          return `${content}\n🔗 ${urlObj.hostname}${urlObj.pathname.length > 1 ? '...' : ''}`;
+        } catch (e) {
+          return `${content}\n🔗 ${customStyle.sourceUrl}`;
+        }
+      }
+      return content;
     }
     if (nodeType === NodeTypeEnum.image) {
       return ''; // 图片节点不显示文字
@@ -246,6 +266,29 @@ function CanvasNodeComponent({
         <BackgroundImage url={style.backgroundImage} width={node.width} height={node.height} />
       )}
 
+      {/* Image Node Content */}
+      {nodeType === NodeTypeEnum.image && node.imageUrl && (
+        <ImageContent url={node.imageUrl} width={node.width} height={node.height} />
+      )}
+
+      {/* Text Content */}
+      {nodeType !== NodeTypeEnum.image && (
+        <Text
+          x={10}
+          y={10}
+          width={node.width - 20}
+          height={node.height - 20}
+          text={getNodeContent()}
+          fontSize={style.fontSize}
+          fill={style.textColor}
+          fontFamily="Inter, system-ui, sans-serif"
+          align="center"
+          verticalAlign="middle"
+          wrap="word"
+          ellipsis={true}
+          listening={false} // Pass events to Group
+        />
+      )}
       {/* Region Label - Top-Center Border Line */}
       {nodeType === NodeTypeEnum.region && (
         <Group x={node.width / 2} y={0} listening={false}>
@@ -291,32 +334,60 @@ function CanvasNodeComponent({
         </Group>
       )}
 
-      {/* Image content for image type */}
-      {nodeType === NodeTypeEnum.image && node.imageUrl ? (
-        <ImageContent url={node.imageUrl} width={node.width} height={node.height} />
-      ) : (
-        /* Text content (Non-Region) */
-        nodeType !== NodeTypeEnum.region && (
-          <Text
-            text={getNodeContent()}
-            fill={style.textColor}
-            fontSize={style.fontSize}
-            fontFamily="system-ui, -apple-system, sans-serif"
-            padding={12}
-            width={node.width - 24}
-            height={node.height - (nodeType === NodeTypeEnum.master_idea ? 36 : 24)}
-            y={nodeType === NodeTypeEnum.master_idea ? 18 : 0}
-            align="center"
-            verticalAlign="middle"
-            wrap="word"
-            ellipsis
-            listening={false}
+      {/* Idea Source Indicator */}
+      {/* Idea Source Indicator - Show distinct types */}
+      {node.idea?.sources && node.idea.sources.length > 0 && (
+        <Group
+          x={
+            node.width - (Math.min(new Set(node.idea.sources.map((s) => s.type)).size, 3) * 16 + 8)
+          }
+          y={4}
+          listening={false}
+        >
+          {/* Background pill */}
+          <Rect
+            width={Math.min(new Set(node.idea.sources.map((s) => s.type)).size, 3) * 16 + 4}
+            height={16}
+            fill="#1e293b"
+            cornerRadius={8}
+            opacity={0.8}
           />
-        )
+          {Array.from(new Set(node.idea.sources.map((s) => s.type)))
+            .slice(0, 3)
+            .map((type, index) => (
+              <Group key={type} x={index * 16 + 2} y={0}>
+                {type === 'link' ? (
+                  <Path
+                    data="M10 4H14V8M14 4L9 9M9 4H5C4.44772 4 4 4.44772 4 5V15C4 15.5523 4.44772 16 5 16H15C15.5523 16 16 15.5523 16 15V11"
+                    fill="#60a5fa"
+                    scale={{ x: 0.5, y: 0.5 }}
+                    x={4}
+                    y={4}
+                  />
+                ) : type === 'image' ? (
+                  <Path
+                    data="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7l-3 3.72L9 13l-3 4h12l-4-5z"
+                    fill="#34d399"
+                    scale={{ x: 0.35, y: 0.35 }}
+                    x={4}
+                    y={4}
+                  />
+                ) : (
+                  <Path
+                    data="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
+                    fill="#fbbf24"
+                    scale={{ x: 0.35, y: 0.35 }}
+                    x={4}
+                    y={4}
+                  />
+                )}
+              </Group>
+            ))}
+        </Group>
       )}
 
       {/* Connection handles - MUST be rendered AFTER Rect and Text to be on top */}
-      {(!isConnectingFrom || isConnectionTarget) && (
+      {(!isConnectingFrom || isConnectionTarget) && !isReadonly && (
         <>
           {renderHandle('top')}
           {renderHandle('bottom')}
@@ -357,6 +428,9 @@ export const CanvasNode = React.memo(CanvasNodeComponent, (prev, next) => {
     // Check for task updates (status change or new task)
     prev.node.idea?.tasks?.[0]?.status === next.node.idea?.tasks?.[0]?.status &&
     prev.node.idea?.tasks?.length === next.node.idea?.tasks?.length &&
+    // Check for source updates
+    prev.node.idea?.sources?.length === next.node.idea?.sources?.length &&
+    prev.node.idea?.sources?.[0]?.type === next.node.idea?.sources?.[0]?.type &&
     shallowEqualStyle(prev.node.style, next.node.style)
   );
 });

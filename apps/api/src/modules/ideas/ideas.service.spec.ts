@@ -45,7 +45,7 @@ describe('IdeasService', () => {
         userId,
         createdAt: new Date(),
         updatedAt: new Date(),
-        source: null,
+        sources: null,
         deletedAt: null,
       };
 
@@ -57,7 +57,7 @@ describe('IdeasService', () => {
         data: {
           content: createIdeaDto.content,
           userId,
-          source: undefined,
+          sources: undefined,
         },
       });
       expect(result).toEqual(expectedIdea);
@@ -76,7 +76,7 @@ describe('IdeasService', () => {
           userId,
           createdAt: new Date(),
           updatedAt: new Date(),
-          source: null,
+          sources: null,
           deletedAt: null,
         },
         {
@@ -85,7 +85,7 @@ describe('IdeasService', () => {
           userId,
           createdAt: new Date(),
           updatedAt: new Date(),
-          source: null,
+          sources: null,
           deletedAt: null,
         },
       ];
@@ -133,7 +133,7 @@ describe('IdeasService', () => {
         userId,
         createdAt: new Date(),
         updatedAt: new Date(),
-        source: null,
+        sources: null,
         deletedAt: null,
       };
 
@@ -178,7 +178,7 @@ describe('IdeasService', () => {
         userId: 'user-2', // Different user
         createdAt: new Date(),
         updatedAt: new Date(),
-        source: null,
+        sources: null,
         deletedAt: null,
       };
 
@@ -199,7 +199,7 @@ describe('IdeasService', () => {
         userId,
         createdAt: new Date(),
         updatedAt: new Date(),
-        source: null,
+        sources: null,
         deletedAt: null,
       };
       const updatedIdea = { ...existingIdea, ...updateDto, updatedAt: new Date() };
@@ -216,17 +216,17 @@ describe('IdeasService', () => {
       expect(result).toEqual({ data: updatedIdea });
     });
 
-    it('should update an idea source', async () => {
+    it('should update an idea sources', async () => {
       const userId = 'user-1';
       const ideaId = 'idea-1';
-      const updateDto = { source: { type: 'link', url: 'https://example.com' } };
+      const updateDto = { sources: [{ type: 'link', url: 'https://example.com' }] };
       const existingIdea = {
         id: ideaId,
         content: 'Test Idea',
         userId,
         createdAt: new Date(),
         updatedAt: new Date(),
-        source: null,
+        sources: null,
         deletedAt: null,
       };
       const updatedIdea = { ...existingIdea, ...updateDto, updatedAt: new Date() };
@@ -263,7 +263,7 @@ describe('IdeasService', () => {
         userId: 'user-2', // Different user
         createdAt: new Date(),
         updatedAt: new Date(),
-        source: null,
+        sources: null,
         deletedAt: null,
       };
 
@@ -283,7 +283,7 @@ describe('IdeasService', () => {
         userId,
         createdAt: new Date(),
         updatedAt: new Date(),
-        source: null,
+        sources: null,
         deletedAt: null,
       };
 
@@ -316,7 +316,7 @@ describe('IdeasService', () => {
         userId: 'user-2', // Different user
         createdAt: new Date(),
         updatedAt: new Date(),
-        source: null,
+        sources: null,
         deletedAt: null,
       };
 

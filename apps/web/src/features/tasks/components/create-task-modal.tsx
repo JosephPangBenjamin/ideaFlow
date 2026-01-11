@@ -9,6 +9,7 @@ interface CreateTaskModalProps {
   visible: boolean;
   ideaId?: string;
   initialTitle?: string;
+  initialSources?: any[];
   onCancel: () => void;
   onSuccess?: (taskId?: string) => void;
 }
@@ -17,6 +18,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   visible,
   ideaId,
   initialTitle = '',
+  initialSources,
   onCancel,
   onSuccess,
 }) => {
@@ -67,6 +69,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       mutation.mutate({
         ...values,
         ideaId,
+        sources: initialSources,
         dueDate,
       });
     } catch (error) {

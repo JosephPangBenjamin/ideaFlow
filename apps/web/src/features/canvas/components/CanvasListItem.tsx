@@ -94,7 +94,8 @@ export function CanvasListItem({ canvas, isActive, onSelect, onDelete }: CanvasL
     <Menu>
       <Menu.Item
         key="rename"
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           setIsEditing(true);
           setDropdownVisible(false);
         }}
@@ -103,7 +104,8 @@ export function CanvasListItem({ canvas, isActive, onSelect, onDelete }: CanvasL
       </Menu.Item>
       <Menu.Item
         key="delete"
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           handleDeleteConfirm();
           setDropdownVisible(false);
         }}

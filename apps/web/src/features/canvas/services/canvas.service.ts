@@ -1,4 +1,5 @@
 import { api } from '@/services/api';
+import { IdeaSource } from '../../ideas/types';
 
 // Canvas V2: 节点类型枚举
 export enum CanvasNodeType {
@@ -14,7 +15,12 @@ export interface Canvas {
   name: string;
   userId: string;
   ideaId?: string | null; // Canvas V2
-  idea?: { id: string; content: string; tasks?: Array<{ id: string; status: string }> } | null;
+  idea?: {
+    id: string;
+    content: string;
+    sources?: IdeaSource[];
+    tasks?: Array<{ id: string; status: string }>;
+  } | null;
   createdAt: string;
   updatedAt: string;
   nodes?: CanvasNode[];
@@ -34,7 +40,12 @@ export interface CanvasNode {
   imageUrl?: string | null; // Canvas V2
   color?: string | null;
   parentId?: string | null;
-  idea?: { id: string; content: string; tasks?: Array<{ id: string; status: string }> } | null;
+  idea?: {
+    id: string;
+    content: string;
+    sources?: IdeaSource[];
+    tasks?: Array<{ id: string; status: string }>;
+  } | null;
   createdAt: string;
   updatedAt: string;
   style?: any;

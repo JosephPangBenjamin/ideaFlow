@@ -1,5 +1,6 @@
 import { api } from '@/services/api';
 import { PaginatedResponse } from '../../canvas/services/canvas.service';
+import { IdeaSource } from '../../ideas/types';
 
 export enum TaskStatus {
   todo = 'todo',
@@ -21,7 +22,9 @@ export interface Task {
   idea?: {
     id: string;
     content: string;
+    sources?: IdeaSource[];
   };
+  sources?: IdeaSource[];
 }
 
 export interface CreateTaskDto {
@@ -30,6 +33,7 @@ export interface CreateTaskDto {
   category?: string;
   dueDate?: string;
   ideaId?: string;
+  sources?: IdeaSource[];
 }
 
 export interface UpdateTaskDto {

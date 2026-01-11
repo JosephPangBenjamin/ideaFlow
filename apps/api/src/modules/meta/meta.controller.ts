@@ -8,7 +8,12 @@ import {
   ParseFilePipe,
   MaxFileSizeValidator,
   BadRequestException,
+  Sse,
+  Query,
+  MessageEvent,
 } from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MetaService } from './meta.service';
@@ -25,6 +30,13 @@ export class MetaController {
   @Post('preview')
   async preview(@Body() dto: PreviewUrlDto) {
     return this.metaService.getLinkPreview(dto.url);
+  }
+
+  @Sse('preview-stream')
+  previewStream(@Query('url') url: string): Observable<MessageEvent> {
+    return this.metaService
+      .getLinkPreviewStream(url)
+      .pipe(map((data) => ({ data }) as MessageEvent));
   }
 
   @Post('upload')

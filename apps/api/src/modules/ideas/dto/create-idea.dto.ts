@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsOptional, IsObject } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsArray } from 'class-validator';
 
 export class CreateIdeaDto {
   @IsNotEmpty()
@@ -6,6 +6,6 @@ export class CreateIdeaDto {
   content!: string;
 
   @IsOptional()
-  @IsObject()
-  source?: any; // Using any for JSONB flexibility, or strictly typed DTO if desired
+  @IsArray()
+  sources?: any[];
 }

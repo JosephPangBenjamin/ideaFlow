@@ -7,6 +7,7 @@ import { tasksService } from './services/tasks.service';
 import { TaskDueDateBadge } from './components/task-due-date-badge';
 import { TaskStatusSelect } from './components/task-status-select';
 import { STATUS_CONFIG } from './components/task-status-badge';
+import { IconLink, IconImage, IconFile } from '@arco-design/web-react/icon';
 
 export function Tasks() {
   const navigate = useNavigate();
@@ -75,6 +76,26 @@ export function Tasks() {
                         <Tag size="small" className="bg-slate-700/50 border-slate-600">
                           {task.category}
                         </Tag>
+                      )}
+                      {task.idea?.sources && task.idea.sources.length > 0 && (
+                        <div className="flex items-center gap-1 text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                          {task.idea.sources[0]?.type === 'link' ? (
+                            <IconLink />
+                          ) : task.idea.sources[0]?.type === 'image' ? (
+                            <IconImage />
+                          ) : (
+                            <IconFile />
+                          )}
+                          <span>
+                            {task.idea.sources.length > 1
+                              ? `${task.idea.sources.length}个来源`
+                              : task.idea.sources[0]?.type === 'link'
+                                ? '链接'
+                                : task.idea.sources[0]?.type === 'image'
+                                  ? '图片'
+                                  : '来源'}
+                          </span>
+                        </div>
                       )}
                     </Space>
                     <TaskDueDateBadge dueDate={task.dueDate} status={task.status} />

@@ -52,6 +52,7 @@ export class CanvasesService {
           select: {
             id: true,
             content: true,
+            sources: true,
           },
         },
       },
@@ -71,6 +72,7 @@ export class CanvasesService {
               select: {
                 id: true,
                 content: true,
+                sources: true,
               },
             },
           },
@@ -79,6 +81,7 @@ export class CanvasesService {
           select: {
             id: true,
             content: true,
+            sources: true,
           },
         },
       },
@@ -118,7 +121,7 @@ export class CanvasesService {
     });
 
     // Canvas V2: 自动创建主想法节点（居中显示）
-    await this.prisma.canvasNode.create({
+    const masterNode = await this.prisma.canvasNode.create({
       data: {
         canvasId: canvasResult.data.id,
         type: CanvasNodeType.master_idea,
@@ -129,6 +132,66 @@ export class CanvasesService {
         height: 100,
       },
     });
+
+    // Handle Sources as Readonly Nodes
+    const sources = idea.sources as any[];
+    if (sources && Array.isArray(sources) && sources.length > 0) {
+      const startX = 400;
+      const startY = 300; // Below master node
+      const gapX = 220;
+
+      // Calculate starting X to center the row of sources
+      const totalWidth = sources.length * 200 + (sources.length - 1) * 20; // approx width
+      let currentX = startX - totalWidth / 2 + 100; // Center align relative to master node center (400 + 100)
+
+      for (let i = 0; i < sources.length; i++) {
+        const source = sources[i];
+        let nodeType: CanvasNodeType = CanvasNodeType.sub_idea;
+        let content = '';
+        let imageUrl = null;
+        const style: any = { readonly: true, isSource: true };
+
+        if (source.type === 'image') {
+          nodeType = CanvasNodeType.image;
+          imageUrl = source.url;
+        } else if (source.type === 'link') {
+          nodeType = CanvasNodeType.sub_idea;
+          content = source.meta?.title || source.url;
+          style.sourceType = 'link';
+          style.sourceUrl = source.url;
+          style.stroke = '#60a5fa'; // Blue for links
+        } else if (source.type === 'text') {
+          nodeType = CanvasNodeType.annotation; // Use annotation for text notes
+          content = source.content;
+          style.stroke = '#fbbf24'; // Amber for notes
+        }
+
+        const sourceNode = await this.prisma.canvasNode.create({
+          data: {
+            canvasId: canvasResult.data.id,
+            type: nodeType,
+            x: currentX,
+            y: startY,
+            width: 200,
+            height: nodeType === CanvasNodeType.image ? 150 : 100, // Taller for images
+            content: content,
+            imageUrl: imageUrl,
+            style: style,
+          },
+        });
+
+        // Connect to Master Node
+        await this.prisma.canvasConnection.create({
+          data: {
+            canvasId: canvasResult.data.id,
+            fromNodeId: masterNode.id,
+            toNodeId: sourceNode.id,
+          },
+        });
+
+        currentX += gapX;
+      }
+    }
 
     // 重新获取画布（包含新创建的节点）
     return this.findOne(userId, canvasResult.data.id);
@@ -175,6 +238,7 @@ export class CanvasesService {
               select: {
                 id: true,
                 content: true,
+                sources: true,
               },
             },
           },
@@ -277,6 +341,7 @@ export class CanvasesService {
           select: {
             id: true,
             content: true,
+            sources: true,
           },
         },
       },
@@ -352,6 +417,7 @@ export class CanvasesService {
           select: {
             id: true,
             content: true,
+            sources: true,
           },
         },
       },
@@ -394,6 +460,7 @@ export class CanvasesService {
           select: {
             id: true,
             content: true,
+            sources: true,
           },
         },
       },

@@ -18,6 +18,7 @@ import { tasksService, TaskStatus } from './services/tasks.service';
 import { formatFullTime } from '../../utils/date';
 import { TaskDueDateBadge } from './components/task-due-date-badge';
 import { TaskStatusSelect } from './components/task-status-select';
+import { SourceList } from '../ideas/components/SourceList';
 import dayjs from 'dayjs';
 import { getDueDateStatus } from './utils/task-utils';
 
@@ -131,6 +132,12 @@ const TaskDetail: React.FC = () => {
               </div>
             )}
           </Card>
+
+          {task.sources && task.sources.length > 0 && (
+            <Card bordered={false} className="shadow-sm mb-6 bg-slate-800/20 backdrop-blur-md">
+              <SourceList sources={task.sources} />
+            </Card>
+          )}
         </div>
 
         <div>

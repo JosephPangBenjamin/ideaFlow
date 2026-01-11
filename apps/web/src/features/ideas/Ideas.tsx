@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Drawer } from '@arco-design/web-react';
 import { motion } from 'framer-motion';
-import { fadeInUp, staggerContainer } from '@/utils/motion';
+import { staggerContainer } from '@/utils/motion';
 import { IdeaList } from './components/IdeaList';
 import { QuickCapture } from './components/QuickCapture';
 import { QuickCaptureFAB } from './components/QuickCaptureFAB';
@@ -23,28 +23,24 @@ export function Ideas() {
       <QuickCaptureFAB />
 
       <Drawer
-        width={500}
-        title={<span className="text-white font-semibold">想法详情</span>}
+        width={400}
+        title={null}
         visible={!!selectedIdea}
         onOk={() => setSelectedIdea(null)}
         onCancel={() => setSelectedIdea(null)}
         footer={null}
-        className="bg-slate-900"
-        headerStyle={{
-          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-          backgroundColor: '#0f172a',
-        }}
+        className="idea-detail-drawer"
+        headerStyle={{ display: 'none' }}
+        bodyStyle={{ padding: 0, height: '100%' }}
         maskClosable={true}
       >
-        <div className="text-slate-200">
-          {selectedIdea && (
-            <IdeaDetail
-              idea={selectedIdea}
-              onUpdate={setSelectedIdea}
-              onDelete={() => setSelectedIdea(null)}
-            />
-          )}
-        </div>
+        {selectedIdea && (
+          <IdeaDetail
+            idea={selectedIdea}
+            onUpdate={setSelectedIdea}
+            onDelete={() => setSelectedIdea(null)}
+          />
+        )}
       </Drawer>
     </motion.div>
   );

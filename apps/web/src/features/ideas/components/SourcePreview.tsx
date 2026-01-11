@@ -1,6 +1,7 @@
 import React from 'react';
 import { IdeaSource } from '../types';
 import { IconFile } from '@arco-design/web-react/icon';
+import { Image } from '@arco-design/web-react';
 
 interface Props {
   source: IdeaSource;
@@ -39,7 +40,7 @@ export const SourcePreview: React.FC<Props> = ({ source, compact = false }) => {
     if (!source.url) return null;
     return (
       <div className="relative group">
-        <img
+        <Image
           src={source.url}
           alt="preview"
           className={`${compact ? 'w-16 h-16' : 'max-h-64 w-full'} object-cover rounded bg-slate-800`}

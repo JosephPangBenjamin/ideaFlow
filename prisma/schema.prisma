@@ -32,7 +32,7 @@ model User {
 model Idea {
   id        String   @id @default(cuid())
   content   String
-  source    Json?    // { type: 'link'|'image'|'text', url?, title?, thumbnail?, note? }
+  sources   Json?    // [{ type: 'link'|'image'|'text', url?, title?, thumbnail?, note? }]
   userId    String   @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -60,9 +60,10 @@ model Task {
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
   deletedAt   DateTime?  @map("deleted_at")
+  sources     Json?      // [{ type: 'link'|'image'|'text', url?, title?, thumbnail?, note? }]
 
   user User  @relation(fields: [userId], references: [id])
-  idea Idea? @relation(fields: [ideaId], references: [id])
+  idea Idea? @relation(fields: [ideaId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])

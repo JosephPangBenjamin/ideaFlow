@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsArray } from 'class-validator';
 
 export class UpdateIdeaDto {
   @IsOptional()
@@ -6,6 +6,6 @@ export class UpdateIdeaDto {
   content?: string;
 
   @IsOptional()
-  @IsObject()
-  source?: any;
+  @IsArray()
+  sources?: any[];
 }

@@ -25,21 +25,39 @@ export const TaskStatusSelect: React.FC<TaskStatusSelectProps> = ({
       await queryClient.cancelQueries({ queryKey: ['task', taskId] });
       await queryClient.cancelQueries({ queryKey: ['tasks'] });
 
-      // Snapshot the previous value
+      // Snapshot the previous values
       const previousTask = queryClient.getQueryData(['task', taskId]);
+      const previousTasks = queryClient.getQueryData(['tasks']);
 
-      // Optimistically update to the new value
-      queryClient.setQueryData(['task', taskId], (old: any) => ({
-        ...old,
-        data: { ...old.data, status: newStatus },
-      }));
+      // Optimistically update the single task query
+      queryClient.setQueryData(['task', taskId], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: { ...old.data, status: newStatus },
+        };
+      });
 
-      return { previousTask };
+      // Optimistically update the tasks list query
+      queryClient.setQueryData(['tasks'], (old: any) => {
+        if (!old || !old.data) return old;
+        return {
+          ...old,
+          data: old.data.map((task: any) =>
+            task.id === taskId ? { ...task, status: newStatus } : task
+          ),
+        };
+      });
+
+      return { previousTask, previousTasks };
     },
     onError: (_err, _newStatus, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
+      // If the mutation fails, roll back both queries
       if (context?.previousTask) {
         queryClient.setQueryData(['task', taskId], context.previousTask);
+      }
+      if (context?.previousTasks) {
+        queryClient.setQueryData(['tasks'], context.previousTasks);
       }
       Message.error('更新失败，请重试');
     },

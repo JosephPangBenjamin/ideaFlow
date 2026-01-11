@@ -10,7 +10,7 @@ export type IdeaSource =
 export interface Idea {
   id: string;
   content: string;
-  source?: IdeaSource;
+  sources?: IdeaSource[];
   userId: string;
   tasks?: Array<{ id: string; status: string }>;
   createdAt: string;
@@ -19,10 +19,10 @@ export interface Idea {
 
 export interface CreateIdeaDto {
   content: string;
-  source?: IdeaSource;
+  sources?: IdeaSource[];
 }
 
 export interface UpdateIdeaDto {
   content?: string;
-  source?: IdeaSource;
+  sources?: IdeaSource[];
 }

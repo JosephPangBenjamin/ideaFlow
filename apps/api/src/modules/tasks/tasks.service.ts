@@ -15,6 +15,7 @@ export class TasksService {
         category: createTaskDto.category,
         dueDate: this.prepareDueDate(createTaskDto.dueDate),
         ideaId: createTaskDto.ideaId,
+        sources: createTaskDto.sources,
         userId,
       },
       include: { idea: true },

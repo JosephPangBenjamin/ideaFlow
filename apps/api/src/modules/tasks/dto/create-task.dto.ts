@@ -21,4 +21,7 @@ export class CreateTaskDto {
   @IsString()
   @IsOptional()
   ideaId?: string;
+
+  @IsOptional()
+  sources?: any; // IdeaSource[]
 }

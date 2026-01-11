@@ -11,7 +11,7 @@ export class IdeasService {
     return this.prisma.idea.create({
       data: {
         content: createIdeaDto.content,
-        source: createIdeaDto.source || undefined,
+        sources: createIdeaDto.sources || undefined,
         userId,
       },
     });
