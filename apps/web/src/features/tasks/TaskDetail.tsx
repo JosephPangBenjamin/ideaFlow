@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Button,
   Card,
-  Tag,
   Typography,
   Space,
   Skeleton,
@@ -13,14 +12,19 @@ import {
   DatePicker,
   Message,
 } from '@arco-design/web-react';
-import { IconArrowLeft, IconClockCircle, IconTag, IconCalendar } from '@arco-design/web-react/icon';
+import { IconArrowLeft, IconClockCircle, IconCalendar } from '@arco-design/web-react/icon';
 import { tasksService, TaskStatus } from './services/tasks.service';
 import { formatFullTime } from '../../utils/date';
 import { TaskDueDateBadge } from './components/task-due-date-badge';
 import { TaskStatusSelect } from './components/task-status-select';
 import { SourceList } from '../ideas/components/SourceList';
+import { CategoryManager } from './components/CategoryManager';
+import { categoriesService } from './services/categoriesService';
+import { Modal } from '@arco-design/web-react';
 import dayjs from 'dayjs';
 import { getDueDateStatus } from './utils/task-utils';
+import { CategorySelect } from './components/CategorySelect';
+import { CategoryBadge } from './components/CategoryBadge';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -39,15 +43,27 @@ const TaskDetail: React.FC = () => {
     enabled: !!id,
   });
 
+  const [isManageOpen, setIsManageOpen] = React.useState(false);
+
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => categoriesService.getAll(),
+  });
+
   const updateTaskMutation = useMutation({
-    mutationFn: (updates: { status?: TaskStatus; dueDate?: string | null }) =>
-      tasksService.updateTask(id!, updates),
+    mutationFn: (updates: {
+      status?: TaskStatus;
+      dueDate?: string | null;
+      categoryId?: string | null;
+    }) => tasksService.updateTask(id!, updates),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['task', id] });
       if (variables.dueDate === null) {
         Message.success('截止日期已清除');
       } else if (variables.dueDate) {
         Message.success('截止日期已更新');
+      } else if (variables.categoryId !== undefined) {
+        Message.success('分类已更新');
       }
     },
     onError: () => {
@@ -192,11 +208,30 @@ const TaskDetail: React.FC = () => {
               </div>
 
               <div>
-                <Text type="secondary" className="block mb-2">
-                  <IconTag className="mr-2" />
-                  分类
-                </Text>
-                <Tag className={isDone ? 'opacity-60' : ''}>{task.category || '未分类'}</Tag>
+                <div>
+                  <CategorySelect
+                    categories={categoriesResponse?.data || []}
+                    value={task.categoryId}
+                    onChange={(catId) => updateTaskMutation.mutate({ categoryId: catId })}
+                    onManageClick={() => setIsManageOpen(true)}
+                  />
+
+                  <Modal
+                    title={null}
+                    visible={isManageOpen}
+                    onCancel={() => setIsManageOpen(false)}
+                    footer={null}
+                    style={{ width: 400, padding: 0 }}
+                  >
+                    <CategoryManager
+                      onClose={() => setIsManageOpen(false)}
+                      onUpdate={() => {
+                        queryClient.invalidateQueries({ queryKey: ['categories'] });
+                        queryClient.invalidateQueries({ queryKey: ['task', id] });
+                      }}
+                    />
+                  </Modal>
+                </div>
               </div>
 
               <div>

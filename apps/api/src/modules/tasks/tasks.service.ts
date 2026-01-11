@@ -12,7 +12,6 @@ export class TasksService {
       data: {
         title: createTaskDto.title,
         description: createTaskDto.description,
-        category: createTaskDto.category,
         dueDate: this.prepareDueDate(createTaskDto.dueDate),
         ideaId: createTaskDto.ideaId,
         sources: createTaskDto.sources,
@@ -66,10 +65,12 @@ export class TasksService {
     // First verify ownership
     await this.findOne(userId, taskId);
 
+    const { category, ...data } = updateTaskDto;
+
     const updatedTask = await this.prisma.task.update({
       where: { id: taskId },
       data: {
-        ...updateTaskDto,
+        ...data,
         dueDate: this.prepareDueDate(updateTaskDto.dueDate),
       },
       include: { idea: true },

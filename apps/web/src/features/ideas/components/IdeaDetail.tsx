@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input, Button, Message, Modal } from '@arco-design/web-react';
-import { IconEdit, IconDelete, IconApps, IconCheckCircle } from '@arco-design/web-react/icon';
+import {
+  IconEdit,
+  IconDelete,
+  IconApps,
+  IconCheckCircle,
+  IconBulb,
+} from '@arco-design/web-react/icon';
 import { useNavigate } from 'react-router-dom';
 import { findOrCreateCanvasByIdeaId } from '@/features/canvas/services/canvas.service';
 import { CreateTaskModal } from '@/features/tasks/components/create-task-modal';
@@ -25,6 +31,7 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
   const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
 
   const hasTask = (idea.tasks?.length ?? 0) > 0;
+  const hasCanvas = !!idea.canvas;
 
   // Canvas V2: 进入画布
   const canvasMutation = useMutation({
@@ -127,21 +134,34 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full text-slate-200">
+    <div className="flex flex-col h-full text-slate-200 relative overflow-hidden">
+      {/* Dashboard-style dynamic glow effects */}
+      <div className="absolute -top-20 -right-20 w-48 h-48 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none" />
+      <div className="absolute top-1/2 -left-20 w-40 h-40 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none" />
+
       {/* Fixed Header Area */}
-      <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-sm px-6 py-2 border-b border-white/5">
-        {/* Action Buttons Row - Single Line, Icons Only */}
-        <div className="flex items-center justify-between">
-          <span className="text-slate-500 text-xs whitespace-nowrap">
-            创建于 {formatFullTime(idea.createdAt)}
-          </span>
-          <div className="flex items-center flex-shrink-0">
+      <div className="sticky top-0 z-10 bg-slate-900/90 backdrop-blur-md px-6 py-4 border-b border-white/5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 shadow-xl shadow-black/10">
+              <IconBulb style={{ fontSize: 20, color: '#a855f7' }} />
+            </div>
+            <div>
+              <div className="text-[10px] font-bold text-purple-400 uppercase tracking-[0.2em] mb-0.5">
+                灵感详情
+              </div>
+              <h2 className="text-lg font-bold text-white tracking-tight leading-none">
+                Idea Detail
+              </h2>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
             <Button
               type="text"
               size="mini"
               icon={<IconEdit />}
               onClick={handleStartEdit}
-              className="text-slate-400 hover:text-blue-400"
+              className="text-slate-400 hover:text-blue-400 hover:bg-blue-400/10"
               title="编辑想法"
             />
             <Button
@@ -149,48 +169,79 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
               size="mini"
               icon={<IconDelete />}
               onClick={handleDelete}
-              className="text-slate-500 hover:text-red-400"
+              className="text-slate-500 hover:text-red-400 hover:bg-red-400/10"
               loading={deleteMutation.isPending}
               title="删除想法"
-            />
-            {hasTask ? (
-              <Button
-                type="text"
-                size="mini"
-                icon={<IconCheckCircle className="text-green-400" />}
-                onClick={() => navigate(`/tasks/${idea.tasks?.[0]?.id}`)}
-                className="text-green-400"
-                title="查看关联任务"
-              />
-            ) : (
-              <Button
-                type="text"
-                size="mini"
-                icon={<IconCheckCircle />}
-                onClick={() => setIsTaskModalVisible(true)}
-                className="text-slate-400 hover:text-purple-400"
-                title="转为任务"
-              />
-            )}
-            <Button
-              type="text"
-              size="mini"
-              icon={<IconApps />}
-              onClick={() => canvasMutation.mutate()}
-              className="text-slate-400 hover:text-blue-400"
-              loading={canvasMutation.isPending}
-              title="进入画布"
             />
           </div>
         </div>
 
+        {/* Action Buttons Row */}
+        <div className="flex items-center justify-between bg-white/5 p-2 rounded-xl border border-white/5">
+          <span className="text-slate-500 text-[10px] uppercase tracking-wider pl-2">
+            {formatFullTime(idea.createdAt)}
+          </span>
+          <div className="flex items-center gap-2">
+            {hasTask ? (
+              <Button
+                size="mini"
+                className="bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20 rounded-lg text-[11px]"
+                icon={<IconCheckCircle />}
+                onClick={() => navigate(`/tasks/${idea.tasks?.[0]?.id}`)}
+              >
+                查看任务
+              </Button>
+            ) : (
+              <Button
+                size="mini"
+                className="bg-slate-800 text-slate-400 border-slate-700 hover:border-purple-500/50 hover:text-purple-400 rounded-lg text-[11px]"
+                icon={<IconCheckCircle />}
+                onClick={() => setIsTaskModalVisible(true)}
+              >
+                转为任务
+              </Button>
+            )}
+            {hasCanvas ? (
+              <Button
+                size="mini"
+                className="bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20 rounded-lg text-[11px]"
+                icon={<IconApps />}
+                onClick={() => canvasMutation.mutate()}
+                loading={canvasMutation.isPending}
+              >
+                查看画布
+              </Button>
+            ) : (
+              <Button
+                size="mini"
+                className="bg-slate-800 text-slate-400 border-slate-700 hover:border-blue-500/50 hover:text-blue-400 rounded-lg text-[11px]"
+                icon={<IconApps />}
+                onClick={() => canvasMutation.mutate()}
+                loading={canvasMutation.isPending}
+              >
+                开启画布
+              </Button>
+            )}
+          </div>
+        </div>
+
         {/* Sticky Section Title */}
-        <div className="mt-2 pt-2 border-t border-white/5">
+        <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
           <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
             {currentSection === 'sources' && idea.sources && idea.sources.length > 0
               ? `想法来源 (${idea.sources.length})`
               : '想法内容'}
           </span>
+          {!isEditing && (
+            <div className="flex gap-1.5">
+              <div
+                className={`w-1.5 h-1.5 rounded-full ${currentSection === 'content' ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-slate-700'}`}
+              />
+              <div
+                className={`w-1.5 h-1.5 rounded-full ${currentSection === 'sources' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'bg-slate-700'}`}
+              />
+            </div>
+          )}
         </div>
       </div>
 

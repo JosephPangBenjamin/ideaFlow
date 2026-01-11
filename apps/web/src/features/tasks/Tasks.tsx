@@ -1,20 +1,40 @@
 import React from 'react';
 import { Card, Tag, Space, Empty, Skeleton } from '@arco-design/web-react';
 import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { tasksService } from './services/tasks.service';
 import { TaskDueDateBadge } from './components/task-due-date-badge';
 import { TaskStatusSelect } from './components/task-status-select';
 import { STATUS_CONFIG } from './components/task-status-badge';
-import { IconLink, IconImage, IconFile } from '@arco-design/web-react/icon';
+import { IconLink, IconImage, IconFile, IconFilter } from '@arco-design/web-react/icon';
+import { CategoryBadge } from './components/CategoryBadge';
+import { categoriesService, Category } from './services/categoriesService';
+import { CategorySelect } from './components/CategorySelect';
+import { CategoryManager } from './components/CategoryManager';
+import { Modal } from '@arco-design/web-react';
 
 export function Tasks() {
   const navigate = useNavigate();
-  const { data: tasksResponse, isLoading } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => tasksService.getTasks(),
+  const queryClient = useQueryClient();
+  const [selectedCategoryId, setSelectedCategoryId] = React.useState<string | null>(null);
+  const [isManageOpen, setIsManageOpen] = React.useState(false);
+
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => categoriesService.getAll(),
   });
+
+  const {
+    data: tasksResponse,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ['tasks', selectedCategoryId],
+    queryFn: () => tasksService.getTasks({ categoryId: selectedCategoryId || undefined }),
+  });
+
+  const categories = categoriesResponse?.data || [];
 
   if (isLoading) {
     return (
@@ -36,6 +56,37 @@ export function Tasks() {
 
   return (
     <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-white">任务列表</h2>
+        <div className="flex items-center gap-4 w-64">
+          <IconFilter className="text-slate-400" />
+          <CategorySelect
+            categories={categories}
+            value={selectedCategoryId}
+            onChange={setSelectedCategoryId}
+            onManageClick={() => setIsManageOpen(true)}
+          />
+        </div>
+      </div>
+
+      <Modal
+        title={null}
+        visible={isManageOpen}
+        onCancel={() => setIsManageOpen(false)}
+        footer={null}
+        className="category-manager-modal"
+        style={{ width: 400, padding: 0 }}
+      >
+        <CategoryManager
+          onClose={() => setIsManageOpen(false)}
+          onUpdate={() => {
+            // Refetch categories and tasks if needed
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
+            refetch();
+          }}
+        />
+      </Modal>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {tasks.map((task, index) => (
           <motion.div
@@ -72,11 +123,7 @@ export function Tasks() {
 
                   <div className="flex items-center justify-between mt-auto">
                     <Space size={8}>
-                      {task.category && (
-                        <Tag size="small" className="bg-slate-700/50 border-slate-600">
-                          {task.category}
-                        </Tag>
-                      )}
+                      <CategoryBadge category={task.category as any} />
                       {task.idea?.sources && task.idea.sources.length > 0 && (
                         <div className="flex items-center gap-1 text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded border border-white/5">
                           {task.idea.sources[0]?.type === 'link' ? (

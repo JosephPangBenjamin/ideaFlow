@@ -30,6 +30,11 @@ export class IdeasService {
               status: true,
             },
           },
+          canvas: {
+            select: {
+              id: true,
+            },
+          },
         },
         skip,
         take: limit,
@@ -64,6 +69,11 @@ export class IdeasService {
             category: true,
             dueDate: true,
             createdAt: true,
+          },
+        },
+        canvas: {
+          select: {
+            id: true,
           },
         },
       },

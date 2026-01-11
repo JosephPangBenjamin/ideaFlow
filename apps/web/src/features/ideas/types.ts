@@ -13,6 +13,7 @@ export interface Idea {
   sources?: IdeaSource[];
   userId: string;
   tasks?: Array<{ id: string; status: string }>;
+  canvas?: { id: string } | null;
   createdAt: string;
   updatedAt: string;
 }

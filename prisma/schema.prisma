@@ -24,6 +24,7 @@ model User {
   ideas           Idea[]
   tasks           Task[]
   canvases        Canvas[]
+  categories      Category[]
   analyticsEvents AnalyticsEvent[]
 
   @@map("users")
@@ -53,7 +54,8 @@ model Task {
   title       String
   description String?
   status      TaskStatus @default(todo)
-  category    String?
+  category    Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId  String?    @map("category_id")
   dueDate     DateTime?  @map("due_date")
   ideaId      String?    @map("idea_id")
   userId      String     @map("user_id")
@@ -67,8 +69,23 @@ model Task {
 
   @@index([userId])
   @@index([status])
+  @@index([categoryId])
   @@index([dueDate])
   @@map("tasks")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  color     String?  // hex color
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@map("categories")
 }
 
 enum TaskStatus {

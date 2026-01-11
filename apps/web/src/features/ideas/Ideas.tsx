@@ -23,7 +23,7 @@ export function Ideas() {
       <QuickCaptureFAB />
 
       <Drawer
-        width={400}
+        width={380}
         title={null}
         visible={!!selectedIdea}
         onOk={() => setSelectedIdea(null)}

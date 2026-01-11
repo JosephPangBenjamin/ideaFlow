@@ -1,4 +1,5 @@
 import { api } from '@/services/api';
+import { Category } from './categoriesService';
 import { PaginatedResponse } from '../../canvas/services/canvas.service';
 import { IdeaSource } from '../../ideas/types';
 
@@ -13,7 +14,8 @@ export interface Task {
   title: string;
   description?: string;
   status: TaskStatus;
-  category?: string;
+  category?: Category | null;
+  categoryId?: string | null;
   dueDate?: string;
   ideaId?: string;
   userId: string;
@@ -30,7 +32,7 @@ export interface Task {
 export interface CreateTaskDto {
   title: string;
   description?: string;
-  category?: string;
+  categoryId?: string;
   dueDate?: string;
   ideaId?: string;
   sources?: IdeaSource[];
@@ -40,7 +42,7 @@ export interface UpdateTaskDto {
   title?: string;
   description?: string;
   status?: TaskStatus;
-  category?: string;
+  categoryId?: string | null;
   dueDate?: string | null;
 }
 
@@ -52,9 +54,13 @@ class TasksService {
     return response.data;
   }
 
-  async getTasks(page = 1, limit = 20): Promise<PaginatedResponse<Task>> {
+  async getTasks(params?: {
+    page?: number;
+    limit?: number;
+    categoryId?: string;
+  }): Promise<PaginatedResponse<Task>> {
     const response = await api.get(this.baseUrl, {
-      params: { page, limit },
+      params,
     });
     return response.data;
   }
