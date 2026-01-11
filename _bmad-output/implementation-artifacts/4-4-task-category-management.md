@@ -1,6 +1,6 @@
 # Story 4.4: 任务分类管理 (Task Category Management)
 
-Status: in-progress
+Status: done
 
 ## Story
 
