@@ -37,27 +37,28 @@ so that **按项目组织和管理大量任务**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Backend - 数据库与 API 层面
-  - [ ] 1.1 修改 `schema.prisma` 增加 `Category` 模型
-  - [ ] 1.2 修改 `Task` 模型，建立与 `Category` 的关联 (`categoryId`)
-  - [ ] 1.3 创建数据库迁移
-  - [ ] 1.4 实现 Category Controller 和 Service (CRUD)
-  - [ ] 1.5 更新 Task Service 以支持 `categoryId` 的更新与查询
+- [x] Task 1: Backend - 数据库与 API 层面
+  - [x] 1.1 修改 `schema.prisma` 增加 `Category` 模型
+  - [x] 1.2 修改 `Task` 模型，建立与 `Category` 的关联 (`categoryId`)
+  - [x] 1.3 创建数据库迁移
+  - [x] 1.4 实现 Category Controller 和 Service (CRUD)
+  - [x] 1.5 更新 Task Service 以支持 `categoryId` 的更新与查询
 
-- [ ] Task 2: Frontend - 组件开发
-  - [ ] 2.1 开发 `CategoryBadge` 组件 (展示分类名称及颜色)
-  - [ ] 2.2 开发 `CategorySelect` 组件 (支持搜索、快速创建)
-  - [ ] 2.3 开发 `CategoryManager` 弹窗/页面 (用于 CRUD)
+- [x] Task 2: Frontend - 组件开发
+  - [x] 2.1 开发 `CategoryBadge` 组件 (展示分类名称及颜色)
+  - [x] 2.2 开发 `CategorySelect` 组件 (支持搜索、快速创建)
+  - [x] 2.3 开发 `CategoryManager` 弹窗/页面 (用于 CRUD)
 
-- [ ] Task 3: Frontend - 页面集成
-  - [ ] 3.1 在任务详情页集成 `CategorySelect`
-  - [ ] 3.2 在侧边栏或任务列表页增加分类切换/筛选入口
-  - [ ] 3.3 在任务列表卡片上展示分类标识
+- [x] Task 3: Frontend - 页面集成
+  - [x] 3.1 在任务详情页集成 `CategorySelect`
+  - [x] 3.2 在侧边栏或任务列表页增加分类切换/筛选入口
+  - [x] 3.3 在任务列表卡片上展示分类标识
 
-- [ ] Task 4: 测试验证
-  - [ ] 4.1 编写后端 Category 单元测试
-  - [ ] 4.2 验证分类删除时的级联逻辑 (SetNull)
-  - [ ] 4.3 验证前端分类创建与选择的即时响应
+- [x] Task 4: 测试验证
+  - [x] 4.1 编写后端 Category 单元测试
+  - [x] 4.2 验证分类删除时的级联逻辑 (SetNull)
+  - [x] 4.3 验证前端分类创建与选择的即时响应
+  - [x] 4.4 AI-Review: 修复后端任务模块分类支持逻辑 (Fixed)
 
 ## Dev Notes
 

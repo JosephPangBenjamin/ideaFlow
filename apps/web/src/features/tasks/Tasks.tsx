@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Tag, Space, Empty, Skeleton } from '@arco-design/web-react';
+import { Card, Space, Empty, Skeleton } from '@arco-design/web-react';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -9,9 +9,9 @@ import { TaskStatusSelect } from './components/task-status-select';
 import { STATUS_CONFIG } from './components/task-status-badge';
 import { IconLink, IconImage, IconFile, IconFilter } from '@arco-design/web-react/icon';
 import { CategoryBadge } from './components/CategoryBadge';
-import { categoriesService, Category } from './services/categoriesService';
 import { CategorySelect } from './components/CategorySelect';
 import { CategoryManager } from './components/CategoryManager';
+import { categoriesService } from './services/categoriesService';
 import { Modal } from '@arco-design/web-react';
 
 export function Tasks() {
@@ -74,8 +74,9 @@ export function Tasks() {
         visible={isManageOpen}
         onCancel={() => setIsManageOpen(false)}
         footer={null}
+        closable={false}
         className="category-manager-modal"
-        style={{ width: 400, padding: 0 }}
+        style={{ width: 420, padding: 0 }}
       >
         <CategoryManager
           onClose={() => setIsManageOpen(false)}

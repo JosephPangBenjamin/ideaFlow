@@ -14,26 +14,32 @@ export class TasksService {
         description: createTaskDto.description,
         dueDate: this.prepareDueDate(createTaskDto.dueDate),
         ideaId: createTaskDto.ideaId,
+        categoryId: createTaskDto.categoryId,
         sources: createTaskDto.sources,
         userId,
       },
-      include: { idea: true },
+      include: { idea: true, category: true },
     });
   }
 
-  async findAll(userId: string, page: number = 1, limit: number = 20) {
+  async findAll(userId: string, page: number = 1, limit: number = 20, categoryId?: string) {
     const skip = (page - 1) * limit;
+
+    const where: any = { userId };
+    if (categoryId) {
+      where.categoryId = categoryId;
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.task.findMany({
-        where: { userId },
-        include: { idea: true },
+        where,
+        include: { idea: true, category: true },
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.task.count({
-        where: { userId },
+        where,
       }),
     ]);
 
@@ -51,7 +57,7 @@ export class TasksService {
   async findOne(userId: string, taskId: string) {
     const task = await this.prisma.task.findUnique({
       where: { id: taskId },
-      include: { idea: true },
+      include: { idea: true, category: true },
     });
 
     if (!task || task.userId !== userId) {
@@ -65,15 +71,13 @@ export class TasksService {
     // First verify ownership
     await this.findOne(userId, taskId);
 
-    const { category, ...data } = updateTaskDto;
-
     const updatedTask = await this.prisma.task.update({
       where: { id: taskId },
       data: {
-        ...data,
+        ...updateTaskDto,
         dueDate: this.prepareDueDate(updateTaskDto.dueDate),
       },
-      include: { idea: true },
+      include: { idea: true, category: true },
     });
 
     return { data: updatedTask };

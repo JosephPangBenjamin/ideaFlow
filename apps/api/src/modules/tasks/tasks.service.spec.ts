@@ -52,9 +52,10 @@ describe('TasksService', () => {
         data: {
           title: dto.title,
           ideaId: dto.ideaId,
+          categoryId: undefined,
           userId,
         },
-        include: { idea: true },
+        include: { idea: true, category: true },
       });
     });
   });
@@ -69,6 +70,29 @@ describe('TasksService', () => {
       const result = await service.findAll(userId);
       expect(result.data).toEqual(tasks);
       expect(result.meta.total).toBe(1);
+      expect(mockPrismaService.task.findMany).toHaveBeenCalledWith({
+        where: { userId },
+        include: { idea: true, category: true },
+        skip: 0,
+        take: 20,
+        orderBy: { createdAt: 'desc' },
+      });
+    });
+
+    it('should filter by categoryId', async () => {
+      const userId = 'user-1';
+      const categoryId = 'cat-1';
+      mockPrismaService.task.findMany.mockResolvedValue([]);
+      mockPrismaService.task.count.mockResolvedValue(0);
+
+      await service.findAll(userId, 1, 20, categoryId);
+      expect(mockPrismaService.task.findMany).toHaveBeenCalledWith({
+        where: { userId, categoryId },
+        include: { idea: true, category: true },
+        skip: 0,
+        take: 20,
+        orderBy: { createdAt: 'desc' },
+      });
     });
   });
 
@@ -80,6 +104,10 @@ describe('TasksService', () => {
 
       const result = await service.findOne(userId, 'task-1');
       expect(result.data).toEqual(task);
+      expect(mockPrismaService.task.findUnique).toHaveBeenCalledWith({
+        where: { id: 'task-1' },
+        include: { idea: true, category: true },
+      });
     });
 
     it('should throw NotFoundException if task does not exist', async () => {
@@ -106,7 +134,7 @@ describe('TasksService', () => {
         data: {
           dueDate: null,
         },
-        include: { idea: true },
+        include: { idea: true, category: true },
       });
     });
 
@@ -128,7 +156,7 @@ describe('TasksService', () => {
         data: {
           dueDate: new Date(dateStr),
         },
-        include: { idea: true },
+        include: { idea: true, category: true },
       });
     });
 
@@ -150,7 +178,7 @@ describe('TasksService', () => {
           status: TaskStatus.in_progress,
           dueDate: undefined,
         },
-        include: { idea: true },
+        include: { idea: true, category: true },
       });
     });
   });

@@ -12,7 +12,7 @@ export class UpdateTaskDto {
 
   @IsString()
   @IsOptional()
-  category?: string;
+  categoryId?: string | null;
 
   @IsDateString()
   @IsOptional()

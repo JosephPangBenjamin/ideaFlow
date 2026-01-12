@@ -24,7 +24,6 @@ import { Modal } from '@arco-design/web-react';
 import dayjs from 'dayjs';
 import { getDueDateStatus } from './utils/task-utils';
 import { CategorySelect } from './components/CategorySelect';
-import { CategoryBadge } from './components/CategoryBadge';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -221,7 +220,9 @@ const TaskDetail: React.FC = () => {
                     visible={isManageOpen}
                     onCancel={() => setIsManageOpen(false)}
                     footer={null}
-                    style={{ width: 400, padding: 0 }}
+                    closable={false}
+                    className="category-manager-modal"
+                    style={{ width: 420, padding: 0 }}
                   >
                     <CategoryManager
                       onClose={() => setIsManageOpen(false)}
