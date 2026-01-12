@@ -208,12 +208,14 @@ const TaskDetail: React.FC = () => {
 
               <div>
                 <div>
-                  <CategorySelect
-                    categories={categoriesResponse?.data || []}
-                    value={task.categoryId}
-                    onChange={(catId) => updateTaskMutation.mutate({ categoryId: catId })}
-                    onManageClick={() => setIsManageOpen(true)}
-                  />
+                  <div className={isDone ? 'opacity-60' : ''}>
+                    <CategorySelect
+                      categories={categoriesResponse?.data || []}
+                      value={task.categoryId}
+                      onChange={(catId) => updateTaskMutation.mutate({ categoryId: catId })}
+                      onManageClick={() => setIsManageOpen(true)}
+                    />
+                  </div>
 
                   <Modal
                     title={null}

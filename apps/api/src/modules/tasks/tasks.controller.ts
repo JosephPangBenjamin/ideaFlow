@@ -15,6 +15,8 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
+import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
+
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
 export class TasksController {
@@ -26,15 +28,8 @@ export class TasksController {
   }
 
   @Get()
-  async findAll(
-    @Request() req: any,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('categoryId') categoryId?: string
-  ) {
-    const pageNum = parseInt(page || '1', 10) || 1;
-    const limitNum = parseInt(limit || '20', 10) || 20;
-    return this.tasksService.findAll(req.user.id, pageNum, limitNum, categoryId);
+  async findAll(@Request() req: any, @Query() filter: GetTasksFilterDto) {
+    return this.tasksService.findAll(req.user.id, filter);
   }
 
   @Get(':id')

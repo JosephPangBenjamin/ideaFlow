@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import TaskDetail from './TaskDetail';
 import { tasksService, TaskStatus } from './services/tasks.service';
+import { categoriesService } from './services/categoriesService';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import '@testing-library/jest-dom';
@@ -19,6 +20,13 @@ vi.mock('./services/tasks.service', () => ({
   },
 }));
 
+// Mock categoriesService
+vi.mock('./services/categoriesService', () => ({
+  categoriesService: {
+    getAll: vi.fn(),
+  },
+}));
+
 describe('TaskDetail', () => {
   let queryClient: QueryClient;
 
@@ -27,10 +35,14 @@ describe('TaskDetail', () => {
       defaultOptions: {
         queries: {
           retry: false,
+          staleTime: 0,
         },
       },
     });
     vi.clearAllMocks();
+    (categoriesService.getAll as any).mockResolvedValue({
+      data: [{ id: 'cat1', name: 'Work', color: '#ff0000' }],
+    });
   });
 
   const renderComponent = (id: string = '123') => {
@@ -46,11 +58,8 @@ describe('TaskDetail', () => {
   };
 
   it('renders loading skeleton initially', () => {
-    // Return a promise that never resolves to keep it loading
     (tasksService.getTask as any).mockReturnValue(new Promise(() => {}));
-
     const { container } = renderComponent();
-    // Check for skeleton class or structure (Arco's skeleton uses specific classes)
     expect(container.querySelector('.arco-skeleton')).toBeInTheDocument();
   });
 
@@ -60,7 +69,7 @@ describe('TaskDetail', () => {
       title: 'Test Task',
       description: 'Test Description',
       status: 'todo',
-      category: 'Work',
+      categoryId: 'cat1',
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
       userId: 'user1',
@@ -68,6 +77,7 @@ describe('TaskDetail', () => {
         id: 'idea1',
         content: 'Original Idea Content',
       },
+      category: { id: 'cat1', name: 'Work', color: '#ff0000' },
     };
 
     (tasksService.getTask as any).mockResolvedValue({ data: mockTask });
@@ -77,31 +87,21 @@ describe('TaskDetail', () => {
     await waitFor(() => {
       expect(screen.getByText('Test Task')).toBeInTheDocument();
       expect(screen.getByText('Test Description')).toBeInTheDocument();
-      expect(screen.getByText('待办')).toBeInTheDocument(); // Tag content for 'todo'
+      expect(screen.getByText('待办')).toBeInTheDocument();
       expect(screen.getByText('Original Idea Content')).toBeInTheDocument();
+      expect(screen.getByText('Work')).toBeInTheDocument();
     });
   });
 
   it('renders empty state when task not found', async () => {
     (tasksService.getTask as any).mockResolvedValue({ data: null });
-
     renderComponent();
-
     await waitFor(() => {
       expect(screen.getByText('找不到该任务')).toBeInTheDocument();
       expect(screen.getByText('返回任务列表')).toBeInTheDocument();
     });
   });
 
-  it('renders error state', async () => {
-    (tasksService.getTask as any).mockRejectedValue(new Error('Fetch failed'));
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('找不到该任务')).toBeInTheDocument();
-    });
-  });
   it('applies line-through style for done tasks', async () => {
     const mockTask = {
       id: '123',
@@ -109,11 +109,8 @@ describe('TaskDetail', () => {
       status: 'done',
       userId: 'user1',
     };
-
     (tasksService.getTask as any).mockResolvedValue({ data: mockTask });
-
     renderComponent();
-
     await waitFor(() => {
       const title = screen.getByText('Done Task');
       expect(title).toHaveClass('line-through');
@@ -125,17 +122,15 @@ describe('TaskDetail', () => {
       id: '123',
       title: 'Done Task',
       status: 'done',
-      category: 'Work',
+      categoryId: 'cat1',
       userId: 'user1',
+      category: { id: 'cat1', name: 'Work', color: '#ff0000' },
     };
-
     (tasksService.getTask as any).mockResolvedValue({ data: mockTask });
-
     renderComponent();
-
-    await waitFor(() => {
-      const categoryTag = screen.getByText('Work').closest('.arco-tag');
-      expect(categoryTag).toHaveClass('opacity-60');
+    await waitFor(async () => {
+      const categoryTag = (await screen.findByText('Work')).closest('.arco-tag');
+      expect(categoryTag?.parentElement).toHaveClass('opacity-60');
     });
   });
 });

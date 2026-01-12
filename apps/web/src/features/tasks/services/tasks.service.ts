@@ -58,6 +58,10 @@ class TasksService {
     page?: number;
     limit?: number;
     categoryId?: string;
+    status?: string;
+    view?: string;
+    startDate?: string;
+    endDate?: string;
   }): Promise<PaginatedResponse<Task>> {
     const response = await api.get(this.baseUrl, {
       params,

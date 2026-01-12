@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import * as dayjs from 'dayjs';
+import { GetTasksFilterDto, TaskView } from './dto/get-tasks-filter.dto';
 
 @Injectable()
 export class TasksService {
@@ -22,12 +24,64 @@ export class TasksService {
     });
   }
 
-  async findAll(userId: string, page: number = 1, limit: number = 20, categoryId?: string) {
+  async findAll(userId: string, filter: GetTasksFilterDto = new GetTasksFilterDto()) {
+    const { page = 1, limit = 20, categoryId, status, view, startDate, endDate } = filter;
     const skip = (page - 1) * limit;
 
     const where: any = { userId };
+
+    // Apply status filter
+    if (status) {
+      where.status = status;
+    }
+
+    // Apply category filter
     if (categoryId) {
       where.categoryId = categoryId;
+    }
+
+    // Apply view filter
+    if (view) {
+      switch (view) {
+        case TaskView.today:
+          where.dueDate = {
+            gte: dayjs().startOf('day').toDate(),
+            lte: dayjs().endOf('day').toDate(),
+          };
+          break;
+        case TaskView.upcoming:
+          where.dueDate = {
+            gt: dayjs().endOf('day').toDate(),
+          };
+          break;
+        case TaskView.personal:
+          // Personal view means categoryId is null (Inbox)
+          // If a specific categoryId is requested via filter, it conflicts with "Inbox".
+          // Instead of overwriting the filter (which shows the whole Inbox),
+          // we should return empty to respect the user's specific category request.
+          if (where.categoryId) {
+            where.categoryId = { in: [] }; // Impossible condition -> Empty result
+          } else {
+            where.categoryId = null;
+          }
+          break;
+        case TaskView.project:
+          if (!where.categoryId) {
+            where.categoryId = { not: null };
+          }
+          break;
+      }
+    }
+
+    // Apply date range filter (on dueDate)
+    if (startDate || endDate) {
+      where.dueDate = {};
+      if (startDate) {
+        where.dueDate.gte = new Date(startDate);
+      }
+      if (endDate) {
+        where.dueDate.lte = new Date(endDate);
+      }
     }
 
     const [data, total] = await Promise.all([

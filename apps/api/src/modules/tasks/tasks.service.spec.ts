@@ -3,6 +3,8 @@ import { TasksService } from './tasks.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TaskStatus } from '@prisma/client';
 import { NotFoundException } from '@nestjs/common';
+import { TaskView } from './dto/get-tasks-filter.dto';
+import * as dayjs from 'dayjs';
 
 describe('TasksService', () => {
   let service: TasksService;
@@ -85,15 +87,128 @@ describe('TasksService', () => {
       mockPrismaService.task.findMany.mockResolvedValue([]);
       mockPrismaService.task.count.mockResolvedValue(0);
 
-      await service.findAll(userId, 1, 20, categoryId);
-      expect(mockPrismaService.task.findMany).toHaveBeenCalledWith({
-        where: { userId, categoryId },
-        include: { idea: true, category: true },
-        skip: 0,
-        take: 20,
-        orderBy: { createdAt: 'desc' },
-      });
+      await service.findAll(userId, { categoryId });
+      expect(mockPrismaService.task.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ categoryId }),
+        })
+      );
     });
+
+    it('should filter by status', async () => {
+      const userId = 'user-1';
+      const status = TaskStatus.done;
+      mockPrismaService.task.findMany.mockResolvedValue([]);
+      mockPrismaService.task.count.mockResolvedValue(0);
+
+      await service.findAll(userId, { status });
+      expect(mockPrismaService.task.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ status }),
+        })
+      );
+    });
+
+    it('should filter by today view', async () => {
+      const userId = 'user-1';
+      mockPrismaService.task.findMany.mockResolvedValue([]);
+      mockPrismaService.task.count.mockResolvedValue(0);
+
+      await service.findAll(userId, { view: TaskView.today });
+
+      const startOfDay = dayjs().startOf('day').toDate();
+      const endOfDay = dayjs().endOf('day').toDate();
+
+      expect(mockPrismaService.task.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            dueDate: {
+              gte: startOfDay,
+              lte: endOfDay,
+            },
+          }),
+        })
+      );
+    });
+
+    it('should filter by upcoming view', async () => {
+      const userId = 'user-1';
+      mockPrismaService.task.findMany.mockResolvedValue([]);
+      mockPrismaService.task.count.mockResolvedValue(0);
+
+      await service.findAll(userId, { view: TaskView.upcoming });
+
+      const endOfDay = dayjs().endOf('day').toDate();
+
+      expect(mockPrismaService.task.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            dueDate: {
+              gt: endOfDay,
+            },
+          }),
+        })
+      );
+    });
+
+    it('should filter by date range', async () => {
+      const userId = 'user-1';
+      const startDate = '2026-01-01T00:00:00.000Z';
+      const endDate = '2026-01-31T23:59:59.000Z';
+      mockPrismaService.task.findMany.mockResolvedValue([]);
+      mockPrismaService.task.count.mockResolvedValue(0);
+
+      await service.findAll(userId, { startDate, endDate });
+
+      expect(mockPrismaService.task.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            dueDate: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          }),
+        })
+      );
+    });
+
+    it('should filter by combining multiple parameters', async () => {
+      const userId = 'user-1';
+      const categoryId = 'cat-1';
+      const status = TaskStatus.todo;
+      mockPrismaService.task.findMany.mockResolvedValue([]);
+      mockPrismaService.task.count.mockResolvedValue(0);
+
+      await service.findAll(userId, { categoryId, status });
+
+      expect(mockPrismaService.task.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId,
+            categoryId,
+            status,
+          }),
+        })
+      );
+    });
+  });
+
+  it('should return empty result when filtering by category in Personal (Inbox) view', async () => {
+    const userId = 'user-1';
+    const categoryId = 'cat-1';
+    mockPrismaService.task.findMany.mockResolvedValue([]);
+    mockPrismaService.task.count.mockResolvedValue(0);
+
+    await service.findAll(userId, { view: TaskView.personal, categoryId });
+
+    // Expect an impossible condition or explicit null check that results in empty
+    expect(mockPrismaService.task.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          categoryId: { in: [] },
+        }),
+      })
+    );
   });
 
   describe('findOne', () => {
