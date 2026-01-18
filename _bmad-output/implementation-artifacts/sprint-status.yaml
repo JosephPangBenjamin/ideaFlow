@@ -89,7 +89,7 @@ development_status:
   4-3-task-status-management: done
   4-4-task-category-management: done
   4-5-task-list-filter-view: done
-  4-6-task-edit-delete: backlog
+  4-6-task-edit-delete: done
   epic-4-retrospective: optional
 
   # ===========================================

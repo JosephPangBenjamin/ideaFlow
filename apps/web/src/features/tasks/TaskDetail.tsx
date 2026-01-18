@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -11,8 +11,16 @@ import {
   Breadcrumb,
   DatePicker,
   Message,
+  Input,
+  Modal,
 } from '@arco-design/web-react';
-import { IconArrowLeft, IconClockCircle, IconCalendar } from '@arco-design/web-react/icon';
+import type { RefInputType } from '@arco-design/web-react/es/Input/interface';
+import {
+  IconArrowLeft,
+  IconClockCircle,
+  IconCalendar,
+  IconDelete,
+} from '@arco-design/web-react/icon';
 import { tasksService, TaskStatus } from './services/tasks.service';
 import { formatFullTime } from '../../utils/date';
 import { TaskDueDateBadge } from './components/task-due-date-badge';
@@ -20,17 +28,31 @@ import { TaskStatusSelect } from './components/task-status-select';
 import { SourceList } from '../ideas/components/SourceList';
 import { CategoryManager } from './components/CategoryManager';
 import { categoriesService } from './services/categoriesService';
-import { Modal } from '@arco-design/web-react';
 import dayjs from 'dayjs';
 import { getDueDateStatus } from './utils/task-utils';
 import { CategorySelect } from './components/CategorySelect';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
 
 const TaskDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // ============================================
+  // 状态管理：标题编辑
+  // ============================================
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleValue, setTitleValue] = useState('');
+  const titleInputRef = useRef<RefInputType>(null);
+
+  // ============================================
+  // 状态管理：描述编辑
+  // ============================================
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [descriptionValue, setDescriptionValue] = useState('');
+  const [isSavingDescription, setIsSavingDescription] = useState(false);
+  const descriptionDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     data: taskResponse,
@@ -49,26 +71,180 @@ const TaskDetail: React.FC = () => {
     queryFn: () => categoriesService.getAll(),
   });
 
+  const task = taskResponse?.data;
+
+  // 当 task 数据变化时，同步本地状态
+  useEffect(() => {
+    if (task) {
+      setTitleValue(task.title);
+      setDescriptionValue(task.description || '');
+      setIsEditingTitle(false);
+      setIsEditingDescription(false);
+    }
+  }, [task?.id, task?.title, task?.description]);
+
+  // 聚焦标题输入框（Arco Design Input 使用 dom 属性访问原生输入元素）
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      // 使用 setTimeout 确保 DOM 已渲染
+      setTimeout(() => {
+        const inputEl = titleInputRef.current?.dom;
+        if (inputEl) {
+          inputEl.focus();
+          inputEl.select();
+        }
+      }, 0);
+    }
+  }, [isEditingTitle]);
+
+  // ============================================
+  // Mutations
+  // ============================================
   const updateTaskMutation = useMutation({
     mutationFn: (updates: {
       status?: TaskStatus;
       dueDate?: string | null;
       categoryId?: string | null;
+      title?: string;
+      description?: string;
     }) => tasksService.updateTask(id!, updates),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['task', id] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
       if (variables.dueDate === null) {
         Message.success('截止日期已清除');
       } else if (variables.dueDate) {
         Message.success('截止日期已更新');
       } else if (variables.categoryId !== undefined) {
         Message.success('分类已更新');
+      } else if (variables.title !== undefined) {
+        Message.success('已保存 ✓');
+      } else if (variables.description !== undefined) {
+        Message.success('已保存 ✓');
+        setIsSavingDescription(false);
       }
     },
     onError: () => {
       Message.error('更新失败，请重试');
+      setIsSavingDescription(false);
     },
   });
+
+  // 删除任务 mutation
+  const deleteTaskMutation = useMutation({
+    mutationFn: () => tasksService.deleteTask(id!),
+    onSuccess: () => {
+      Message.success('已删除');
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      navigate('/tasks');
+    },
+    onError: (error: Error) => {
+      // 提供更具体的错误信息
+      const errorMessage = error?.message || '删除失败';
+      Message.error(`删除任务失败：${errorMessage}。请稍后重试`);
+    },
+  });
+
+  // ============================================
+  // 标题编辑处理
+  // ============================================
+  const handleTitleDoubleClick = useCallback(() => {
+    setIsEditingTitle(true);
+  }, []);
+
+  const handleSaveTitle = useCallback(() => {
+    const trimmed = titleValue.trim();
+    // 如果标题为空，不保存，恢复原值
+    if (!trimmed) {
+      Message.warning('标题不能为空');
+      setTitleValue(task?.title || '');
+      setIsEditingTitle(false);
+      return;
+    }
+    // 只有内容变化时才保存
+    if (trimmed !== task?.title) {
+      updateTaskMutation.mutate({ title: trimmed });
+    }
+    setIsEditingTitle(false);
+  }, [titleValue, task?.title, updateTaskMutation]);
+
+  const handleTitleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleSaveTitle();
+      } else if (e.key === 'Escape') {
+        setTitleValue(task?.title || '');
+        setIsEditingTitle(false);
+      }
+    },
+    [handleSaveTitle, task?.title]
+  );
+
+  // ============================================
+  // 描述编辑处理（带 Debounce）
+  // ============================================
+  const handleDescriptionDoubleClick = useCallback(() => {
+    setIsEditingDescription(true);
+  }, []);
+
+  const handleDescriptionChange = useCallback(
+    (value: string) => {
+      setDescriptionValue(value);
+      setIsSavingDescription(true);
+
+      // 清除之前的定时器
+      if (descriptionDebounceRef.current) {
+        clearTimeout(descriptionDebounceRef.current);
+      }
+
+      // 设置 300ms debounce
+      descriptionDebounceRef.current = setTimeout(() => {
+        // 只有内容变化时才保存
+        if (value !== task?.description) {
+          updateTaskMutation.mutate({ description: value });
+        } else {
+          setIsSavingDescription(false);
+        }
+      }, 300);
+    },
+    [task?.description, updateTaskMutation]
+  );
+
+  const handleDescriptionBlur = useCallback(() => {
+    // 清除 debounce 定时器，立即保存
+    if (descriptionDebounceRef.current) {
+      clearTimeout(descriptionDebounceRef.current);
+    }
+    if (descriptionValue !== task?.description) {
+      updateTaskMutation.mutate({ description: descriptionValue });
+    }
+    setIsEditingDescription(false);
+  }, [descriptionValue, task?.description, updateTaskMutation]);
+
+  // ============================================
+  // 删除处理
+  // ============================================
+  const handleDelete = useCallback(() => {
+    Modal.confirm({
+      title: '确定删除这个任务吗？',
+      content: '删除后无法恢复',
+      okText: '确认',
+      cancelText: '取消',
+      okButtonProps: { status: 'danger' },
+      onOk: () => {
+        deleteTaskMutation.mutate();
+      },
+    });
+  }, [deleteTaskMutation]);
+
+  // 清理 debounce 定时器
+  useEffect(() => {
+    return () => {
+      if (descriptionDebounceRef.current) {
+        clearTimeout(descriptionDebounceRef.current);
+      }
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -77,8 +253,6 @@ const TaskDetail: React.FC = () => {
       </div>
     );
   }
-
-  const task = taskResponse?.data;
 
   if (error || !task) {
     return (
@@ -109,28 +283,77 @@ const TaskDetail: React.FC = () => {
       <div className="flex items-center justify-between mb-8">
         <Space size={16}>
           <Button type="text" icon={<IconArrowLeft />} onClick={() => navigate(-1)} />
-          <Title
-            heading={3}
-            style={{ margin: 0 }}
-            className={isDone ? 'line-through text-slate-500 opacity-60' : ''}
-          >
-            {task.title}
-          </Title>
+          {/* 标题：支持双击编辑 */}
+          {isEditingTitle ? (
+            <Input
+              ref={titleInputRef}
+              value={titleValue}
+              onChange={(value) => setTitleValue(value)}
+              onBlur={handleSaveTitle}
+              onKeyDown={handleTitleKeyDown}
+              style={{ width: 300, fontSize: 20, fontWeight: 'bold' }}
+              className={isDone ? 'line-through opacity-60' : ''}
+            />
+          ) : (
+            <Title
+              heading={3}
+              style={{ margin: 0, cursor: 'pointer' }}
+              className={isDone ? 'line-through text-slate-500 opacity-60' : ''}
+              onDoubleClick={handleTitleDoubleClick}
+              title="双击编辑标题"
+            >
+              {task.title}
+            </Title>
+          )}
         </Space>
 
-        <TaskStatusSelect taskId={task.id} currentStatus={task.status} />
+        <Space size={8}>
+          <TaskStatusSelect taskId={task.id} currentStatus={task.status} />
+          <Button
+            type="text"
+            status="danger"
+            icon={<IconDelete />}
+            onClick={handleDelete}
+            loading={deleteTaskMutation.isPending}
+            aria-label="删除任务"
+          >
+            删除
+          </Button>
+        </Space>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
           <Card bordered={false} className="shadow-sm mb-6 bg-slate-800/20 backdrop-blur-md">
             <div className="mb-6">
-              <Text type="secondary" className="block mb-2">
-                任务描述
-              </Text>
-              <Paragraph className={`text-slate-300 ${isDone ? 'opacity-60' : ''}`}>
-                {task.description || '暂无描述'}
-              </Paragraph>
+              <div className="flex items-center justify-between mb-2">
+                <Text type="secondary" className="block">
+                  任务描述
+                </Text>
+                {isSavingDescription && <Text className="text-xs text-blue-400">正在保存...</Text>}
+              </div>
+              {/* 描述：支持双击编辑 */}
+              {isEditingDescription ? (
+                <Input.TextArea
+                  value={descriptionValue}
+                  onChange={handleDescriptionChange}
+                  onBlur={handleDescriptionBlur}
+                  autoFocus
+                  autoSize={{ minRows: 3, maxRows: 10 }}
+                  className={`text-slate-300 ${isDone ? 'opacity-60' : ''}`}
+                  placeholder="添加任务描述..."
+                />
+              ) : (
+                <div
+                  className={`text-slate-300 cursor-pointer min-h-[60px] p-2 rounded hover:bg-slate-700/30 transition-colors ${isDone ? 'opacity-60' : ''}`}
+                  onDoubleClick={handleDescriptionDoubleClick}
+                  title="双击编辑描述"
+                >
+                  {task.description || (
+                    <span className="text-slate-500 italic">暂无描述，双击添加</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {task.idea && (
