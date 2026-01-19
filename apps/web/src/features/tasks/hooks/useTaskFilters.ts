@@ -5,6 +5,7 @@ import {
   taskStatusAtom,
   taskCategoryAtom,
   taskDateRangeAtom,
+  taskSortAtom,
   taskFiltersAtom,
   resetFiltersAtom,
 } from '../../../stores/tasks';
@@ -15,6 +16,7 @@ export function useTaskFilters() {
   const [status, setStatus] = useAtom(taskStatusAtom);
   const [categoryId, setCategoryId] = useAtom(taskCategoryAtom);
   const [dateRange, setDateRange] = useAtom(taskDateRangeAtom);
+  const [taskSort, setTaskSort] = useAtom(taskSortAtom);
   const [filters] = useAtom(taskFiltersAtom);
   const [, resetFilters] = useAtom(resetFiltersAtom);
 
@@ -34,6 +36,7 @@ export function useTaskFilters() {
     status,
     categoryId,
     dateRange,
+    sort: taskSort,
     filters,
 
     // Actions
@@ -41,6 +44,7 @@ export function useTaskFilters() {
     setStatus,
     setCategoryId,
     setDateRange,
+    setSort: setTaskSort,
     resetFilters,
 
     // Data

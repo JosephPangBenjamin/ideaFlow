@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai';
-import { api } from '../../../services/api';
+import { IconLoading } from '@arco-design/web-react/icon';
+import { ideasService } from '../services/ideas.service';
+import { useIdeaFilters } from '../hooks/useIdeaFilters';
 import { Idea } from '../types';
 import { IdeaCard } from './IdeaCard';
 import { Empty } from '@arco-design/web-react';
@@ -23,14 +25,17 @@ interface IdeasResponse {
 
 export const IdeaList: React.FC<Props> = ({ onItemClick }) => {
   const isSidebarOpen = useAtomValue(isSidebarOpenAtom);
+  const { filters } = useIdeaFilters();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
     useInfiniteQuery({
-      queryKey: ['ideas'],
-      queryFn: async ({ pageParam }) => {
-        const { data } = await api.get<IdeasResponse>('/ideas', {
-          params: { page: pageParam, limit: 20 },
+      queryKey: ['ideas', filters],
+      queryFn: async ({ pageParam = 1 }) => {
+        const response = await ideasService.getIdeas({
+          page: pageParam as number,
+          limit: 20,
+          ...filters,
         });
-        return data;
+        return response;
       },
       getNextPageParam: (lastPage: IdeasResponse) => {
         if (lastPage.meta.page < lastPage.meta.totalPages) {

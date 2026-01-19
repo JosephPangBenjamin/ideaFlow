@@ -9,6 +9,7 @@ import { MetaModule } from './modules/meta/meta.module';
 import { CanvasesModule } from './modules/canvases/canvases.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { SearchModule } from './modules/search/search.module';
 
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -30,6 +31,7 @@ import { join } from 'path';
     CanvasesModule,
     TasksModule,
     CategoriesModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

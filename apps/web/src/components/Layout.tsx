@@ -18,6 +18,8 @@ import { spring, hoverAnimation, tapAnimation } from '@/utils/motion';
 import { QuickCapture } from '@/features/ideas/components/QuickCapture';
 import { QuickCaptureFAB } from '@/features/ideas/components/QuickCaptureFAB';
 import { useQuickCaptureHotkey } from '@/features/ideas/hooks/useQuickCaptureHotkey';
+import { GlobalSearch } from '@/components/GlobalSearch';
+import { useGlobalSearchHotkey } from '@/hooks/useGlobalSearchHotkey';
 
 const navItems = [
   { path: '/dashboard', icon: IconHome, label: '仪表盘' },
@@ -32,6 +34,7 @@ export function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useAtom(isSidebarOpenAtom);
   const { logout, user } = useAuth();
   useQuickCaptureHotkey();
+  useGlobalSearchHotkey();
 
   const handleLogout = async () => {
     await logout();
@@ -206,6 +209,7 @@ export function Layout() {
       </main>
       <QuickCapture />
       <QuickCaptureFAB />
+      <GlobalSearch />
     </div>
   );
 }

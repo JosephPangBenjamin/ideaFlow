@@ -15,6 +15,7 @@ import {
 import { IdeasService } from './ideas.service';
 import { CreateIdeaDto } from './dto/create-idea.dto';
 import { UpdateIdeaDto } from './dto/update-idea.dto';
+import { GetIdeasFilterDto } from './dto/get-ideas-filter.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('ideas')
@@ -29,13 +30,8 @@ export class IdeasController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(
-    @Request() req: any,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20
-  ) {
-    // Ensure page and limit are numbers (query params come as strings)
-    return this.ideasService.findAll(req.user.id, Number(page), Number(limit));
+  findAll(@Request() req: any, @Query() query: GetIdeasFilterDto) {
+    return this.ideasService.findAll(req.user.id, query);
   }
 
   @UseGuards(JwtAuthGuard)

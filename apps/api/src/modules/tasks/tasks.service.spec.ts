@@ -191,6 +191,20 @@ describe('TasksService', () => {
         })
       );
     });
+
+    it('should apply sorting parameters', async () => {
+      const userId = 'user-1';
+      mockPrismaService.task.findMany.mockResolvedValue([]);
+      mockPrismaService.task.count.mockResolvedValue(0);
+
+      await service.findAll(userId, { sortBy: 'dueDate', sortOrder: 'asc' });
+
+      expect(mockPrismaService.task.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { dueDate: 'asc' },
+        })
+      );
+    });
   });
 
   it('should return empty result when filtering by category in Personal (Inbox) view', async () => {

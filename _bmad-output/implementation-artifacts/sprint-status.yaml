@@ -96,9 +96,9 @@ development_status:
   # Epic 5: 搜索与筛选 (Phase 1)
   # FRs: FR40, FR41
   # ===========================================
-  epic-5: backlog
-  5-1-global-search: backlog
-  5-2-list-filter-sort: backlog
+  epic-5: in-progress
+  5-1-global-search: done
+  5-2-list-filter-sort: done
   epic-5-retrospective: optional
 
   # ===========================================

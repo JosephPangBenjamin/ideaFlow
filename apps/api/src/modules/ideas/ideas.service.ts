@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateIdeaDto } from './dto/create-idea.dto';
 import { UpdateIdeaDto } from './dto/update-idea.dto';
+import { GetIdeasFilterDto } from './dto/get-ideas-filter.dto';
 
 @Injectable()
 export class IdeasService {
@@ -17,12 +18,28 @@ export class IdeasService {
     });
   }
 
-  async findAll(userId: string, page: number = 1, limit: number = 20) {
+  async findAll(userId: string, filter: GetIdeasFilterDto = new GetIdeasFilterDto()) {
+    const {
+      page = 1,
+      limit = 20,
+      startDate,
+      endDate,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = filter;
     const skip = (page - 1) * limit;
+
+    const where: any = { userId };
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.idea.findMany({
-        where: { userId },
+        where,
         include: {
           tasks: {
             select: {
@@ -38,10 +55,10 @@ export class IdeasService {
         },
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [sortBy]: sortOrder },
       }),
       this.prisma.idea.count({
-        where: { userId },
+        where,
       }),
     ]);
 

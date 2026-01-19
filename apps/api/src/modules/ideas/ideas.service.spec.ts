@@ -65,61 +65,82 @@ describe('IdeasService', () => {
   });
 
   describe('findAll', () => {
-    it('should return paginated ideas', async () => {
-      const userId = 'user-1';
-      const page = 1;
-      const limit = 10;
-      const ideas = [
-        {
-          id: '1',
-          content: 'Idea 1',
-          userId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          sources: null,
-          deletedAt: null,
-        },
-        {
-          id: '2',
-          content: 'Idea 2',
-          userId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          sources: null,
-          deletedAt: null,
-        },
-      ];
-      const total = 2;
+    const userId = 'user-1';
+    const mockIdeas = [
+      {
+        id: '1',
+        content: 'Idea 1',
+        userId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        sources: null,
+        deletedAt: null,
+      },
+      {
+        id: '2',
+        content: 'Idea 2',
+        userId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        sources: null,
+        deletedAt: null,
+      },
+    ];
+    const total = 2;
 
-      (prisma.idea.findMany as jest.Mock).mockResolvedValue(ideas);
+    it('should return paginated ideas with default options', async () => {
+      (prisma.idea.findMany as jest.Mock).mockResolvedValue(mockIdeas);
       (prisma.idea.count as jest.Mock).mockResolvedValue(total);
 
-      const result = await service.findAll(userId, page, limit);
+      const result = await service.findAll(userId);
 
       expect(prisma.idea.findMany).toHaveBeenCalledWith({
         where: { userId },
         include: {
-          tasks: {
-            select: {
-              id: true,
-              status: true,
-            },
-          },
+          tasks: { select: { id: true, status: true } },
+          canvas: { select: { id: true } },
         },
         skip: 0,
-        take: limit,
+        take: 20,
         orderBy: { createdAt: 'desc' },
       });
-      expect(prisma.idea.count).toHaveBeenCalledWith({ where: { userId } });
-      expect(result).toEqual({
-        data: ideas,
-        meta: {
-          total,
-          page,
-          limit,
-          totalPages: 1,
-        },
-      });
+      expect(result.meta.page).toBe(1);
+      expect(result.meta.limit).toBe(20);
+    });
+
+    it('should filter by date range', async () => {
+      const startDate = '2024-01-01';
+      const endDate = '2024-01-31';
+
+      (prisma.idea.findMany as jest.Mock).mockResolvedValue(mockIdeas);
+      (prisma.idea.count as jest.Mock).mockResolvedValue(total);
+
+      await service.findAll(userId, { startDate, endDate });
+
+      expect(prisma.idea.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            userId,
+            createdAt: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          },
+        })
+      );
+    });
+
+    it('should apply sorting parameters', async () => {
+      (prisma.idea.findMany as jest.Mock).mockResolvedValue(mockIdeas);
+      (prisma.idea.count as jest.Mock).mockResolvedValue(total);
+
+      await service.findAll(userId, { sortBy: 'updatedAt', sortOrder: 'asc' });
+
+      expect(prisma.idea.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { updatedAt: 'asc' },
+        })
+      );
     });
   });
 
@@ -153,6 +174,11 @@ describe('IdeasService', () => {
               category: true,
               dueDate: true,
               createdAt: true,
+            },
+          },
+          canvas: {
+            select: {
+              id: true,
             },
           },
         },

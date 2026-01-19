@@ -62,6 +62,8 @@ class TasksService {
     view?: string;
     startDate?: string;
     endDate?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
   }): Promise<PaginatedResponse<Task>> {
     const response = await api.get(this.baseUrl, {
       params,

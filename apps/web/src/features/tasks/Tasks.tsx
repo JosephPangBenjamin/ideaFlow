@@ -1,12 +1,64 @@
+import { useMemo } from 'react';
 import { Skeleton } from '@arco-design/web-react';
 import { useTaskFilters } from './hooks/useTaskFilters';
 import { TaskTabs } from './components/TaskTabs';
 import { TaskFilterPanel } from './components/TaskFilterPanel';
 import { TaskCard } from './components/TaskCard';
 import { TaskEmptyState } from './components/TaskEmptyState';
+import { FilterTags } from '@/components/FilterTags';
+import { STATUS_CONFIG } from './components/task-status-badge';
+import { useQuery } from '@tanstack/react-query';
+import { categoriesService } from './services/categoriesService';
 
 export function Tasks() {
-  const { tasks, isLoading } = useTaskFilters();
+  const {
+    tasks,
+    isLoading,
+    status,
+    categoryId,
+    dateRange,
+    setStatus,
+    setCategoryId,
+    setDateRange,
+    resetFilters,
+  } = useTaskFilters();
+
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => categoriesService.getAll(),
+  });
+  const categories = Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : [];
+
+  const activeFilters = useMemo(() => {
+    const tags = [];
+
+    if (status) {
+      tags.push({
+        key: 'status',
+        label: `状态: ${STATUS_CONFIG[status].label}`,
+        onRemove: () => setStatus(null),
+      });
+    }
+
+    if (categoryId) {
+      const category = categories.find((c) => c.id === categoryId);
+      tags.push({
+        key: 'category',
+        label: `分类: ${category?.name || '未知分类'}`,
+        onRemove: () => setCategoryId(null),
+      });
+    }
+
+    if (dateRange.startDate) {
+      tags.push({
+        key: 'dateRange',
+        label: `时间: ${dateRange.startDate} ~ ${dateRange.endDate}`,
+        onRemove: () => setDateRange({}),
+      });
+    }
+
+    return tags;
+  }, [status, categoryId, dateRange, setStatus, setCategoryId, setDateRange, categories]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -19,6 +71,8 @@ export function Tasks() {
           <TaskFilterPanel />
         </div>
       </div>
+
+      <FilterTags filters={activeFilters} onClearAll={resetFilters} />
 
       <div className="mb-8 overflow-x-auto pb-2">
         <TaskTabs />

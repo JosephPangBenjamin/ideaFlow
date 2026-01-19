@@ -25,7 +25,17 @@ export class TasksService {
   }
 
   async findAll(userId: string, filter: GetTasksFilterDto = new GetTasksFilterDto()) {
-    const { page = 1, limit = 20, categoryId, status, view, startDate, endDate } = filter;
+    const {
+      page = 1,
+      limit = 20,
+      categoryId,
+      status,
+      view,
+      startDate,
+      endDate,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = filter;
     const skip = (page - 1) * limit;
 
     const where: any = { userId };
@@ -90,7 +100,7 @@ export class TasksService {
         include: { idea: true, category: true },
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [sortBy]: sortOrder },
       }),
       this.prisma.task.count({
         where,

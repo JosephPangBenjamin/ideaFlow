@@ -7,6 +7,13 @@ export const ideasService = {
     return response.data;
   },
 
+  getIdeas: async (filters: any = {}) => {
+    const response = await api.get<{ data: Idea[]; meta: any }>('/ideas', {
+      params: filters,
+    });
+    return response.data;
+  },
+
   getIdea: async (id: string): Promise<Idea> => {
     const response = await api.get<{ data: Idea }>(`/ideas/${id}`);
     return response.data.data;

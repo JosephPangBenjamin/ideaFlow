@@ -41,4 +41,12 @@ export class GetTasksFilterDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @IsOptional()
+  @IsEnum(['createdAt', 'updatedAt', 'dueDate'])
+  sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' = 'createdAt';
+
+  @IsOptional()
+  @IsEnum(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc' = 'desc';
 }

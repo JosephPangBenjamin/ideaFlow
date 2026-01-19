@@ -2,6 +2,7 @@ import React from 'react';
 import { Popover, Button, Divider, Select, Tag, DatePicker } from '@arco-design/web-react';
 import { IconFilter, IconDelete } from '@arco-design/web-react/icon';
 import { useTaskFilters } from '../hooks/useTaskFilters';
+import { SortSelect } from '@/components/SortSelect';
 import { STATUS_CONFIG } from './task-status-badge';
 import { TaskStatus } from '../services/tasks.service';
 import { useQuery } from '@tanstack/react-query';
@@ -9,8 +10,17 @@ import { categoriesService } from '../services/categoriesService';
 import { CategoryBadge } from './CategoryBadge';
 
 export function TaskFilterPanel() {
-  const { status, setStatus, categoryId, setCategoryId, dateRange, setDateRange, resetFilters } =
-    useTaskFilters();
+  const {
+    status,
+    setStatus,
+    categoryId,
+    setCategoryId,
+    dateRange,
+    setDateRange,
+    sort,
+    setSort,
+    resetFilters,
+  } = useTaskFilters();
 
   const { data: categoriesResponse } = useQuery({
     queryKey: ['categories'],
@@ -38,6 +48,21 @@ export function TaskFilterPanel() {
       </div>
 
       <div className="space-y-6">
+        {/* Sort Options */}
+        <SortSelect
+          sortBy={sort?.sortBy || 'createdAt'}
+          sortOrder={sort?.sortOrder || 'desc'}
+          options={[
+            { value: 'createdAt', label: '创建时间' },
+            { value: 'updatedAt', label: '更新时间' },
+            { value: 'dueDate', label: '截止日期' },
+          ]}
+          onSortByChange={(val) => setSort({ ...sort, sortBy: val })}
+          onSortOrderChange={(val) => setSort({ ...sort, sortOrder: val })}
+        />
+
+        <Divider className="border-slate-800/50 my-0" />
+
         {/* Status Filter */}
         <div>
           <label className="text-xs text-slate-500 mb-2 block uppercase tracking-wider font-bold">
@@ -121,8 +146,8 @@ export function TaskFilterPanel() {
           }
           onChange={(dateString, _) => {
             setDateRange({
-              startDate: dateString[0],
-              endDate: dateString[1],
+              startDate: dateString[0] || undefined,
+              endDate: dateString[1] || undefined,
             });
           }}
           triggerElement={
