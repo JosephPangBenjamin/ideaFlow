@@ -26,6 +26,7 @@ model User {
   canvases        Canvas[]
   categories      Category[]
   analyticsEvents AnalyticsEvent[]
+  notifications   Notification[]
 
   @@map("users")
 }
@@ -186,4 +187,27 @@ model AnalyticsEvent {
   @@index([userId])
   @@index([createdAt])
   @@map("analytics_events")
+}
+
+enum NotificationType {
+  stale_reminder
+  system
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
 }

@@ -28,6 +28,7 @@ function App() {
 
     // Enable Arco Design dark theme globally
     document.body.setAttribute('arco-theme', 'dark');
+    document.body.classList.add('dark');
   }, [setAuth]);
 
   return (

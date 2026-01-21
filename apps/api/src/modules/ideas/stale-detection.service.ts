@@ -4,13 +4,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
+import { StaleReminderService } from '../notifications/stale-reminder.service';
 
 @Injectable()
 export class StaleDetectionService {
   private readonly logger = new Logger(StaleDetectionService.name);
   private readonly STALE_THRESHOLD_DAYS = 7;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly staleReminderService: StaleReminderService
+  ) {}
 
   /**
    * 定时任务：每日凌晨 2:00 执行沉底检测
@@ -48,6 +52,9 @@ export class StaleDetectionService {
     this.logger.log(
       `沉底检测完成: ${staleResult.count} 个想法标记为沉底, ${recoveredResult.count} 个想法已恢复`
     );
+
+    // 触发通知发送
+    await this.staleReminderService.sendReminders();
 
     return {
       staleCount: staleResult.count,

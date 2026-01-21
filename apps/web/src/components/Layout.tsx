@@ -20,6 +20,7 @@ import { QuickCaptureFAB } from '@/features/ideas/components/QuickCaptureFAB';
 import { useQuickCaptureHotkey } from '@/features/ideas/hooks/useQuickCaptureHotkey';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { useGlobalSearchHotkey } from '@/hooks/useGlobalSearchHotkey';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
 const navItems = [
   { path: '/dashboard', icon: IconHome, label: '仪表盘' },
@@ -191,6 +192,12 @@ export function Layout() {
           >
             {navItems.find((i) => location.pathname.startsWith(i.path))?.label || '仪表盘'}
           </motion.div>
+
+          <div className="flex-1" />
+
+          <div className="flex items-center space-x-4">
+            <NotificationBell />
+          </div>
         </header>
 
         {/* Scrollable Content */}

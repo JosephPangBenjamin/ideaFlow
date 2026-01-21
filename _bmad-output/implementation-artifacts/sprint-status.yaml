@@ -107,7 +107,7 @@ development_status:
   # ===========================================
   epic-6: in-progress
   6-1-stale-idea-detection: done
-  6-2-stale-reminder-notification: backlog
+  6-2-stale-reminder-notification: done
   6-3-memory-recovery-card: backlog
   epic-6-retrospective: optional
 

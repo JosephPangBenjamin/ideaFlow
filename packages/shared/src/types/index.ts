@@ -115,3 +115,20 @@ export interface CanvasConnection {
   toNodeId: string;
   label?: string;
 }
+
+/**
+ * Notification Types
+ */
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  data?: any;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export type NotificationType = 'stale_reminder' | 'system';
