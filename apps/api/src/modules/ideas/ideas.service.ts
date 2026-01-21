@@ -26,10 +26,16 @@ export class IdeasService {
       endDate,
       sortBy = 'createdAt',
       sortOrder = 'desc',
+      isStale,
     } = filter;
     const skip = (page - 1) * limit;
 
-    const where: any = { userId };
+    const where: any = { userId, deletedAt: null }; // 只查询未删除的想法
+
+    // 沉底筛选
+    if (isStale !== undefined) {
+      where.isStale = isStale;
+    }
 
     if (startDate || endDate) {
       where.createdAt = {};
@@ -100,6 +106,15 @@ export class IdeasService {
       throw new NotFoundException('想法不存在');
     }
 
+    // AC3: 点子一旦被点击（访问详情），应恢复为非沉底状态
+    if (idea.isStale) {
+      const updatedIdea = await this.prisma.idea.update({
+        where: { id: ideaId },
+        data: { isStale: false, updatedAt: new Date() },
+      });
+      return { data: { ...idea, ...updatedIdea } };
+    }
+
     return { data: idea };
   }
 
@@ -109,7 +124,10 @@ export class IdeasService {
 
     const updatedIdea = await this.prisma.idea.update({
       where: { id: ideaId },
-      data: updateIdeaDto,
+      data: {
+        ...updateIdeaDto,
+        isStale: false, // AC3: 点子一旦被更新，应恢复为非沉底状态
+      },
     });
 
     return { data: updatedIdea };

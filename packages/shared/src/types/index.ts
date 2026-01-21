@@ -3,27 +3,27 @@
  */
 
 export interface ApiResponse<T> {
-    data: T;
-    meta?: PaginationMeta;
+  data: T;
+  meta?: PaginationMeta;
 }
 
 export interface PaginationMeta {
-    total: number;
-    page: number;
-    pageSize: number;
-    totalPages: number;
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 export interface ApiError {
-    statusCode: number;
-    message: string;
-    errors?: FieldError[];
-    timestamp: string;
+  statusCode: number;
+  message: string;
+  errors?: FieldError[];
+  timestamp: string;
 }
 
 export interface FieldError {
-    field: string;
-    message: string;
+  field: string;
+  message: string;
 }
 
 /**
@@ -31,17 +31,17 @@ export interface FieldError {
  */
 
 export interface User {
-    id: string;
-    username: string;
-    phone?: string;
-    nickname?: string;
-    createdAt: string;
-    updatedAt: string;
+  id: string;
+  username: string;
+  phone?: string;
+  nickname?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AuthResponse {
-    user: User;
-    accessToken: string;
+  user: User;
+  accessToken: string;
 }
 
 /**
@@ -49,20 +49,21 @@ export interface AuthResponse {
  */
 
 export interface Idea {
-    id: string;
-    content: string;
-    source?: IdeaSource;
-    userId: string;
-    createdAt: string;
-    updatedAt: string;
+  id: string;
+  content: string;
+  sources?: IdeaSource[]; // 数组形式，与 Prisma schema 一致
+  userId: string;
+  isStale?: boolean; // 沉底状态：7天未操作
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface IdeaSource {
-    type: 'link' | 'image' | 'text';
-    url?: string;
-    title?: string;
-    thumbnail?: string;
-    note?: string;
+  type: 'link' | 'image' | 'text';
+  url?: string;
+  title?: string;
+  thumbnail?: string;
+  note?: string;
 }
 
 /**
@@ -70,16 +71,16 @@ export interface IdeaSource {
  */
 
 export interface Task {
-    id: string;
-    title: string;
-    description?: string;
-    status: TaskStatus;
-    category?: string;
-    dueDate?: string;
-    ideaId?: string;
-    userId: string;
-    createdAt: string;
-    updatedAt: string;
+  id: string;
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  category?: string;
+  dueDate?: string;
+  ideaId?: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
@@ -89,28 +90,28 @@ export type TaskStatus = 'todo' | 'in_progress' | 'done';
  */
 
 export interface Canvas {
-    id: string;
-    name: string;
-    userId: string;
-    nodes: CanvasNode[];
-    connections: CanvasConnection[];
-    createdAt: string;
-    updatedAt: string;
+  id: string;
+  name: string;
+  userId: string;
+  nodes: CanvasNode[];
+  connections: CanvasConnection[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CanvasNode {
-    id: string;
-    ideaId?: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    content?: string;
+  id: string;
+  ideaId?: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  content?: string;
 }
 
 export interface CanvasConnection {
-    id: string;
-    fromNodeId: string;
-    toNodeId: string;
-    label?: string;
+  id: string;
+  fromNodeId: string;
+  toNodeId: string;
+  label?: string;
 }

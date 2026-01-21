@@ -1,5 +1,5 @@
-import { IsOptional, IsDateString, IsNumber, Min, IsIn } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsDateString, IsNumber, Min, IsIn, IsBoolean } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 export class GetIdeasFilterDto {
   @IsOptional()
@@ -29,4 +29,9 @@ export class GetIdeasFilterDto {
   @IsOptional()
   @IsIn(['asc', 'desc'])
   sortOrder?: 'asc' | 'desc' = 'desc';
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  isStale?: boolean; // 沉底筛选：?isStale=true
 }

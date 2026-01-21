@@ -27,4 +27,12 @@ export const ideasService = {
   deleteIdea: async (id: string): Promise<void> => {
     await api.delete(`/ideas/${id}`);
   },
+
+  // 获取沉底点子数量 (AC4)
+  getStaleCount: async (): Promise<number> => {
+    const response = await api.get<{ data: Idea[]; meta: { total: number } }>('/ideas', {
+      params: { isStale: true, limit: 1 },
+    });
+    return response.data.meta.total;
+  },
 };

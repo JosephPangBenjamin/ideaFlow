@@ -14,6 +14,7 @@ export interface Idea {
   userId: string;
   tasks?: Array<{ id: string; status: string }>;
   canvas?: { id: string } | null;
+  isStale?: boolean; // 沉底状态：7天未操作
   createdAt: string;
   updatedAt: string;
 }

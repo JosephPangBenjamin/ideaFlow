@@ -12,16 +12,21 @@ export const ideaSortAtom = atom<{ sortBy: string; sortOrder: 'asc' | 'desc' }>(
   sortOrder: 'desc',
 });
 
+// 沉底筛选 atom
+export const ideaIsStaleAtom = atom<boolean | null>(null);
+
 // Derived atom to combine all filters
 export const ideaFiltersAtom = atom((get) => {
   const dateRange = get(ideaDateRangeAtom);
   const sort = get(ideaSortAtom);
+  const isStale = get(ideaIsStaleAtom);
 
   return {
     startDate: dateRange.startDate || undefined,
     endDate: dateRange.endDate || undefined,
     sortBy: sort.sortBy,
     sortOrder: sort.sortOrder,
+    isStale: isStale ?? undefined, // 沉底筛选
   };
 });
 
@@ -29,31 +34,35 @@ export const ideaFiltersAtom = atom((get) => {
 export const resetIdeaFiltersAtom = atom(null, (_get, set) => {
   set(ideaDateRangeAtom, { startDate: null, endDate: null });
   set(ideaSortAtom, { sortBy: 'createdAt', sortOrder: 'desc' });
+  set(ideaIsStaleAtom, null); // 重置沉底筛选
 });
 
 export function useIdeaFilters() {
   const [dateRange, setDateRange] = useAtom(ideaDateRangeAtom);
   const [sort, setSort] = useAtom(ideaSortAtom);
+  const [isStale, setIsStale] = useAtom(ideaIsStaleAtom);
   const [filters] = useAtom(ideaFiltersAtom);
   const [, resetFilters] = useAtom(resetIdeaFiltersAtom);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (dateRange.startDate) count++;
+    if (isStale !== null) count++; // 沉底筛选计数
     return count;
-    // Sort is always active (default), so doesn't count as "filter" unless we want to highlight non-default
-  }, [dateRange]);
+  }, [dateRange, isStale]);
 
   return {
     // State
     dateRange,
     sort,
+    isStale,
     filters,
     activeFilterCount,
 
     // Actions
     setDateRange,
     setSort,
+    setIsStale,
     resetFilters,
   };
 }

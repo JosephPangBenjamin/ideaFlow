@@ -35,6 +35,7 @@ model Idea {
   content   String
   sources   Json?    // [{ type: 'link'|'image'|'text', url?, title?, thumbnail?, note? }]
   userId    String   @map("user_id")
+  isStale   Boolean  @default(false) @map("is_stale")  // 沉底点子标记：7天未操作自动标记
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
@@ -46,6 +47,7 @@ model Idea {
 
   @@index([userId])
   @@index([createdAt])
+  @@index([isStale])  // 沉底筛选优化
   @@map("ideas")
 }
 

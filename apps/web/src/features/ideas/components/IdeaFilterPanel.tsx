@@ -1,12 +1,28 @@
-import React from 'react';
-import { Popover, Button, Divider, DatePicker } from '@arco-design/web-react';
+import { Popover, Button, Divider, DatePicker, Checkbox } from '@arco-design/web-react';
 import { IconFilter, IconDelete } from '@arco-design/web-react/icon';
+import { useQuery } from '@tanstack/react-query';
 import { useIdeaFilters } from '../hooks/useIdeaFilters';
 import { SortSelect } from '../../../components/SortSelect';
+import { ideasService } from '../services/ideas.service';
 
 export function IdeaFilterPanel() {
-  const { dateRange, setDateRange, sort, setSort, resetFilters, activeFilterCount } =
-    useIdeaFilters();
+  const {
+    dateRange,
+    setDateRange,
+    sort,
+    setSort,
+    isStale,
+    setIsStale,
+    resetFilters,
+    activeFilterCount,
+  } = useIdeaFilters();
+
+  // AC4: 获取沉底点子数量
+  const { data: staleCount = 0 } = useQuery({
+    queryKey: ['ideas', 'staleCount'],
+    queryFn: () => ideasService.getStaleCount(),
+    staleTime: 60 * 1000, // 1分钟缓存
+  });
 
   const hasFilters = activeFilterCount > 0;
 
@@ -38,6 +54,29 @@ export function IdeaFilterPanel() {
           onSortByChange={(val) => setSort({ ...sort, sortBy: val })}
           onSortOrderChange={(val) => setSort({ ...sort, sortOrder: val })}
         />
+
+        <Divider className="border-slate-800/50 my-0" />
+
+        {/* 沉底点子筛选 - AC4: 显示计数 */}
+        <div>
+          <Checkbox
+            checked={isStale === true}
+            onChange={(checked) => setIsStale(checked ? true : null)}
+            className="text-slate-300"
+          >
+            <span className="flex items-center gap-2">
+              💤 仅显示沉底点子
+              {staleCount > 0 && (
+                <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] rounded-full leading-none font-bold">
+                  {staleCount}
+                </span>
+              )}
+            </span>
+          </Checkbox>
+          <p className="text-[11px] text-slate-500 mt-1 ml-6">
+            {staleCount > 0 ? `${staleCount} 个点子等待回顾` : '7 天未操作的想法'}
+          </p>
+        </div>
 
         <Divider className="border-slate-800/50 my-0" />
 

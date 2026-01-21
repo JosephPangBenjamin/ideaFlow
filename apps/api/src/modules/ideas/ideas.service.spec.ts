@@ -95,7 +95,7 @@ describe('IdeasService', () => {
       const result = await service.findAll(userId);
 
       expect(prisma.idea.findMany).toHaveBeenCalledWith({
-        where: { userId },
+        where: { userId, deletedAt: null }, // 沉底筛选更新：排除已删除的想法
         include: {
           tasks: { select: { id: true, status: true } },
           canvas: { select: { id: true } },
@@ -121,6 +121,7 @@ describe('IdeasService', () => {
         expect.objectContaining({
           where: {
             userId,
+            deletedAt: null, // 沉底筛选更新：排除已删除的想法
             createdAt: {
               gte: new Date(startDate),
               lte: new Date(endDate),
@@ -141,6 +142,60 @@ describe('IdeasService', () => {
           orderBy: { updatedAt: 'asc' },
         })
       );
+    });
+
+    // 沉底筛选测试 - AC5
+    it('should filter by isStale=true', async () => {
+      (prisma.idea.findMany as jest.Mock).mockResolvedValue(mockIdeas);
+      (prisma.idea.count as jest.Mock).mockResolvedValue(total);
+
+      await service.findAll(userId, { isStale: true });
+
+      expect(prisma.idea.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            userId,
+            deletedAt: null,
+            isStale: true,
+          },
+        })
+      );
+    });
+
+    it('should filter by isStale=false', async () => {
+      (prisma.idea.findMany as jest.Mock).mockResolvedValue(mockIdeas);
+      (prisma.idea.count as jest.Mock).mockResolvedValue(total);
+
+      await service.findAll(userId, { isStale: false });
+
+      expect(prisma.idea.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            userId,
+            deletedAt: null,
+            isStale: false,
+          },
+        })
+      );
+    });
+
+    it('should not include isStale filter when undefined', async () => {
+      (prisma.idea.findMany as jest.Mock).mockResolvedValue(mockIdeas);
+      (prisma.idea.count as jest.Mock).mockResolvedValue(total);
+
+      await service.findAll(userId, {});
+
+      expect(prisma.idea.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            userId,
+            deletedAt: null,
+          },
+        })
+      );
+      // 确保 isStale 没有被添加到 where 条件
+      const callArgs = (prisma.idea.findMany as jest.Mock).mock.calls[0][0];
+      expect(callArgs.where.isStale).toBeUndefined();
     });
   });
 

@@ -56,9 +56,9 @@ describe('IdeasController', () => {
 
       (service.findAll as jest.Mock).mockResolvedValue(expectedResult);
 
-      const result = await controller.findAll(req);
+      const result = await controller.findAll(req, {});
 
-      expect(service.findAll).toHaveBeenCalledWith('user-1', 1, 20);
+      expect(service.findAll).toHaveBeenCalledWith('user-1', {});
       expect(result).toEqual(expectedResult);
     });
 
@@ -73,9 +73,9 @@ describe('IdeasController', () => {
 
       (service.findAll as jest.Mock).mockResolvedValue(expectedResult);
 
-      const result = await controller.findAll(req, page, limit);
+      const result = await controller.findAll(req, { page, limit });
 
-      expect(service.findAll).toHaveBeenCalledWith('user-1', 2, 10);
+      expect(service.findAll).toHaveBeenCalledWith('user-1', { page: 2, limit: 10 });
       expect(result).toEqual(expectedResult);
     });
   });

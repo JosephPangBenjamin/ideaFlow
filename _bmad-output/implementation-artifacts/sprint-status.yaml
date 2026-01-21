@@ -105,8 +105,8 @@ development_status:
   # Epic 6: 智能提醒与记忆恢复 (Phase 2)
   # FRs: FR28, FR29, FR30
   # ===========================================
-  epic-6: backlog
-  6-1-stale-idea-detection: backlog
+  epic-6: in-progress
+  6-1-stale-idea-detection: done
   6-2-stale-reminder-notification: backlog
   6-3-memory-recovery-card: backlog
   epic-6-retrospective: optional

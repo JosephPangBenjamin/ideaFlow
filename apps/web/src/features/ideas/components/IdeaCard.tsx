@@ -99,8 +99,10 @@ export const IdeaCard: React.FC<Props> = ({ idea, onClick }) => {
   };
 
   const getSourceIcon = () => {
-    if (!idea.source) return null;
-    switch (idea.source.type) {
+    // 使用 sources 数组（与 Prisma schema 和类型定义一致）
+    const firstSource = idea.sources?.[0];
+    if (!firstSource) return null;
+    switch (firstSource.type) {
       case 'link':
         return <IconLink className="w-3.5 h-3.5" />;
       case 'image':
@@ -117,9 +119,21 @@ export const IdeaCard: React.FC<Props> = ({ idea, onClick }) => {
       variants={fadeInUp}
       whileHover={{ ...hoverAnimation, y: -4, backgroundColor: 'rgba(30, 41, 59, 0.6)' }}
       whileTap={tapAnimation}
-      className="rounded-2xl p-6 bg-slate-800/40 backdrop-blur-md border border-white/10 shadow-xl shadow-black/5 cursor-pointer group overflow-hidden relative h-[200px]"
+      className={`rounded-2xl p-6 bg-slate-800/40 backdrop-blur-md border border-white/10 shadow-xl shadow-black/5 cursor-pointer group overflow-hidden relative h-[200px] ${
+        idea.isStale ? 'ring-1 ring-purple-500/40' : ''
+      }`}
       onClick={handleCardClick}
     >
+      {/* 沉底点子标识 */}
+      {idea.isStale && (
+        <div
+          className="absolute top-3 right-3 text-lg opacity-80 z-20"
+          title="这个点子已经沉底 7 天了"
+        >
+          💤
+        </div>
+      )}
+
       {/* Dynamic Glow Effect */}
       <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-10 bg-blue-500 blur-2xl group-hover:opacity-20 transition-opacity" />
 
