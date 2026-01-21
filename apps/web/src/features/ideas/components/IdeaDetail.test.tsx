@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { IdeaDetail } from './IdeaDetail';
 import { Idea } from '../types';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import '@testing-library/jest-dom/vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -109,8 +110,9 @@ describe('IdeaDetail', () => {
   it('should enter edit mode when double clicking content', () => {
     render(<IdeaDetail idea={mockIdea} />, { wrapper: createWrapper() });
 
-    const content = screen.getByText('Detailed content of the idea with rich text or whatever.');
-    fireEvent.doubleClick(content);
+    // Enter edit mode via button
+    const editBtn = document.querySelector('.arco-icon-edit')?.parentElement;
+    fireEvent.click(editBtn!);
 
     // Should show textarea (by placeholder) and save/cancel buttons
     expect(screen.getByPlaceholderText('在此输入您的深刻见解...')).toBeTruthy();
@@ -122,8 +124,9 @@ describe('IdeaDetail', () => {
     render(<IdeaDetail idea={mockIdea} />, { wrapper: createWrapper() });
 
     // Enter edit mode
-    const content = screen.getByText('Detailed content of the idea with rich text or whatever.');
-    fireEvent.doubleClick(content);
+    // Enter edit mode
+    const editBtn = document.querySelector('.arco-icon-edit')?.parentElement;
+    fireEvent.click(editBtn!);
     expect(screen.getByPlaceholderText('在此输入您的深刻见解...')).toBeTruthy();
 
     // Click cancel
@@ -140,8 +143,9 @@ describe('IdeaDetail', () => {
     render(<IdeaDetail idea={mockIdea} />, { wrapper: createWrapper() });
 
     // Enter edit mode
-    const content = screen.getByText('Detailed content of the idea with rich text or whatever.');
-    fireEvent.doubleClick(content);
+    // Enter edit mode
+    const editBtn = document.querySelector('.arco-icon-edit')?.parentElement;
+    fireEvent.click(editBtn!);
     const textarea = screen.getByPlaceholderText('在此输入您的深刻见解...') as HTMLTextAreaElement;
 
     // Change content
@@ -161,8 +165,9 @@ describe('IdeaDetail', () => {
     render(<IdeaDetail idea={mockIdea} />, { wrapper: createWrapper() });
 
     // Enter edit mode
-    const content = screen.getByText('Detailed content of the idea with rich text or whatever.');
-    fireEvent.doubleClick(content);
+    // Enter edit mode
+    const editBtn = document.querySelector('.arco-icon-edit')?.parentElement;
+    fireEvent.click(editBtn!);
     const textarea = screen.getByPlaceholderText('在此输入您的深刻见解...') as HTMLTextAreaElement;
 
     // Change content
@@ -231,6 +236,23 @@ describe('IdeaDetail', () => {
       );
 
       vi.useFakeTimers(); // Restore fake timers
+    });
+  });
+
+  describe('Memory Recovery Card Integration', () => {
+    it('should show MemoryRecoveryCard when idea is stale', () => {
+      const staleIdea = { ...mockIdea, isStale: true };
+      render(<IdeaDetail idea={staleIdea} />, { wrapper: createWrapper() });
+
+      expect(screen.getByTestId('memory-recovery-card')).toBeTruthy();
+      expect(screen.getByText('记忆恢复')).toBeTruthy();
+    });
+
+    it('should NOT show MemoryRecoveryCard when idea is NOT stale', () => {
+      const freshIdea = { ...mockIdea, isStale: false };
+      render(<IdeaDetail idea={freshIdea} />, { wrapper: createWrapper() });
+
+      expect(screen.queryByTestId('memory-recovery-card')).toBeNull();
     });
   });
 });

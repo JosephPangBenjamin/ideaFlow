@@ -15,6 +15,7 @@ import { formatFullTime } from '../../../utils/date';
 import { Idea, IdeaSource } from '../types';
 import { SourceInput } from './SourceInput';
 import { SourceList } from './SourceList';
+import { MemoryRecoveryCard } from './MemoryRecoveryCard';
 import { ideasService } from '../services/ideas.service';
 
 interface Props {
@@ -251,6 +252,9 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-6 py-6 space-y-8"
       >
+        {/* 记忆恢复卡片 - 仅在沉底点子时显示 */}
+        {idea.isStale && <MemoryRecoveryCard idea={idea} />}
+
         {/* Content Section */}
         <div ref={contentSectionRef} className="space-y-4">
           <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
