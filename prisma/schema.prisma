@@ -20,6 +20,7 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
   tokenVersion Int      @default(0) @map("token_version")
+  notificationSettings Json? @map("notification_settings")
 
   ideas           Idea[]
   tasks           Task[]
@@ -196,6 +197,7 @@ model AnalyticsEvent {
 enum NotificationType {
   stale_reminder
   system
+  task_reminder
 }
 
 model Notification {

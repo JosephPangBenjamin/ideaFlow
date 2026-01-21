@@ -35,8 +35,14 @@ export interface User {
   username: string;
   phone?: string;
   nickname?: string;
+  notificationSettings?: NotificationSettings;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface NotificationSettings {
+  globalLevel: 'all' | 'important' | 'none';
+  types: Partial<Record<NotificationType, boolean>>;
 }
 
 export interface AuthResponse {
@@ -135,4 +141,4 @@ export interface Notification {
   createdAt: string;
 }
 
-export type NotificationType = 'stale_reminder' | 'system';
+export type NotificationType = 'stale_reminder' | 'system' | 'task_reminder';

@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { UsersService } from './users.service';
-import { UpdateUserDto, ChangePasswordDto } from './dto';
+import { UpdateUserDto, ChangePasswordDto, UpdateNotificationSettingsDto } from './dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('users')
@@ -85,6 +85,33 @@ export class UsersController {
       data: null,
       meta: {
         message: '密码修改成功，请重新登录',
+      },
+    };
+  }
+
+  @Get('me/notification-settings')
+  async getNotificationSettings(@Req() req: Request) {
+    const userPayload = (req as any).user;
+    const settings = await this.usersService.getNotificationSettings(userPayload.id);
+
+    return {
+      data: settings,
+      meta: {},
+    };
+  }
+
+  @Patch('me/notification-settings')
+  async updateNotificationSettings(
+    @Req() req: Request,
+    @Body() updateDto: UpdateNotificationSettingsDto
+  ) {
+    const userPayload = (req as any).user;
+    const settings = await this.usersService.updateNotificationSettings(userPayload.id, updateDto);
+
+    return {
+      data: settings,
+      meta: {
+        message: '保存成功',
       },
     };
   }

@@ -1,6 +1,8 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationSettings } from '@ideaflow/shared';
+import { Prisma } from '@prisma/client';
 
 interface CreateUserDto {
   username: string;
@@ -62,7 +64,7 @@ export class UsersService {
         phone: data.phone,
         username: data.username,
         avatarUrl: data.avatarUrl,
-      } as any,
+      },
     });
   }
 
@@ -87,9 +89,46 @@ export class UsersService {
       data: {
         password: hashedPassword,
         tokenVersion: { increment: 1 },
-      } as any,
+      },
     });
 
     return { success: true };
+  }
+
+  async getNotificationSettings(userId: string): Promise<NotificationSettings> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { notificationSettings: true },
+    });
+
+    if (!user || !user.notificationSettings) {
+      return {
+        globalLevel: 'all',
+        types: {
+          system: true,
+          stale_reminder: true,
+          task_reminder: true,
+        },
+      };
+    }
+
+    return user.notificationSettings as unknown as NotificationSettings;
+  }
+
+  async updateNotificationSettings(
+    userId: string,
+    settings: NotificationSettings
+  ): Promise<NotificationSettings> {
+    // Explicitly cast to InputJsonValue which Prisma expects for JSON fields
+    const settingsJson = settings as unknown as Prisma.InputJsonValue;
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        notificationSettings: settingsJson,
+      },
+    });
+
+    return user.notificationSettings as unknown as NotificationSettings;
   }
 }

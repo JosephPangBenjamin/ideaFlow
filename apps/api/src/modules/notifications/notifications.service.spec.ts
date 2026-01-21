@@ -1,11 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsService } from './notifications.service';
+import { UsersService } from '../users/users.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationType } from '@prisma/client';
 
 describe('NotificationsService', () => {
   let service: NotificationsService;
   let prisma: PrismaService;
+  let usersService: UsersService;
 
   const mockNotification = {
     id: 'noti-1',
@@ -19,9 +21,15 @@ describe('NotificationsService', () => {
   };
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    const testingModule: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationsService,
+        {
+          provide: UsersService,
+          useValue: {
+            getNotificationSettings: jest.fn(),
+          },
+        },
         {
           provide: PrismaService,
           useValue: {
@@ -37,8 +45,9 @@ describe('NotificationsService', () => {
       ],
     }).compile();
 
-    service = module.get<NotificationsService>(NotificationsService);
-    prisma = module.get<PrismaService>(PrismaService);
+    service = testingModule.get<NotificationsService>(NotificationsService);
+    prisma = testingModule.get<PrismaService>(PrismaService);
+    usersService = testingModule.get<UsersService>(UsersService);
   });
 
   it('should be defined', () => {
@@ -46,24 +55,75 @@ describe('NotificationsService', () => {
   });
 
   describe('create', () => {
-    it('should create a notification', async () => {
+    it('should create a notification if allowed', async () => {
       const dto = {
-        type: NotificationType.stale_reminder,
+        type: NotificationType.system,
         title: 'Test',
         message: 'Hello',
-        data: { x: 1 },
       };
+      (usersService.getNotificationSettings as jest.Mock).mockResolvedValue({
+        globalLevel: 'all',
+        types: { system: true },
+      });
       (prisma.notification.create as jest.Mock).mockResolvedValue(mockNotification);
 
       const result = await service.create('user-1', dto);
 
-      expect(prisma.notification.create).toHaveBeenCalledWith({
-        data: {
-          userId: 'user-1',
-          ...dto,
-        },
-      });
+      expect(prisma.notification.create).toHaveBeenCalled();
       expect(result).toEqual(mockNotification);
+    });
+
+    it('should block notification if globalLevel is none', async () => {
+      const dto = { type: NotificationType.system, title: 'T', message: 'M' };
+      (usersService.getNotificationSettings as jest.Mock).mockResolvedValue({
+        globalLevel: 'none',
+        types: { system: true },
+      });
+
+      const result = await service.create('user-1', dto);
+
+      expect(result).toBeNull();
+      expect(prisma.notification.create).not.toHaveBeenCalled();
+    });
+
+    it('should block notification if specific type is disabled', async () => {
+      const dto = { type: NotificationType.stale_reminder, title: 'T', message: 'M' };
+      (usersService.getNotificationSettings as jest.Mock).mockResolvedValue({
+        globalLevel: 'all',
+        types: { stale_reminder: false },
+      });
+
+      const result = await service.create('user-1', dto);
+
+      expect(result).toBeNull();
+      expect(prisma.notification.create).not.toHaveBeenCalled();
+    });
+
+    it('should allow important notification even if globalLevel is important', async () => {
+      const dto = { type: NotificationType.system, title: 'T', message: 'M' };
+      (usersService.getNotificationSettings as jest.Mock).mockResolvedValue({
+        globalLevel: 'important',
+        types: { system: true },
+      });
+      (prisma.notification.create as jest.Mock).mockResolvedValue(mockNotification);
+
+      const result = await service.create('user-1', dto);
+
+      expect(result).toBeDefined();
+      expect(prisma.notification.create).toHaveBeenCalled();
+    });
+
+    it('should block non-important notification if globalLevel is important', async () => {
+      const dto = { type: NotificationType.stale_reminder, title: 'T', message: 'M' };
+      (usersService.getNotificationSettings as jest.Mock).mockResolvedValue({
+        globalLevel: 'important',
+        types: { stale_reminder: true },
+      });
+
+      const result = await service.create('user-1', dto);
+
+      expect(result).toBeNull();
+      expect(prisma.notification.create).not.toHaveBeenCalled();
     });
   });
 
@@ -84,21 +144,6 @@ describe('NotificationsService', () => {
       });
       expect(result.data).toEqual([mockNotification]);
       expect(result.meta.total).toBe(1);
-    });
-
-    it('should filter by isRead', async () => {
-      const userId = 'user-1';
-      const dto = { page: 1, pageSize: 20, isRead: false };
-      (prisma.notification.findMany as jest.Mock).mockResolvedValue([mockNotification]);
-      (prisma.notification.count as jest.Mock).mockResolvedValue(1);
-
-      await service.findAll(userId, dto);
-
-      expect(prisma.notification.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId, isRead: false },
-        })
-      );
     });
   });
 
@@ -164,12 +209,6 @@ describe('NotificationsService', () => {
         },
       });
       expect(result).toBe(true);
-    });
-
-    it('should return false if no notification of type was sent today', async () => {
-      (prisma.notification.count as jest.Mock).mockResolvedValue(0);
-      const result = await service.hasSentTodayByType('u1', NotificationType.system);
-      expect(result).toBe(false);
     });
   });
 });

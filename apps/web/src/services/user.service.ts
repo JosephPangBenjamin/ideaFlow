@@ -1,4 +1,5 @@
 import { api } from './api';
+import { NotificationSettings } from '@ideaflow/shared';
 
 export interface UserProfile {
   id: string;
@@ -24,7 +25,7 @@ export interface ChangePasswordDto {
 }
 
 export const userService = {
-  async getMe(): Promise<{ data: UserProfile; meta: any }> {
+  async getMe(): Promise<{ data: UserProfile; meta: Record<string, unknown> }> {
     const response = await api.get('/users/me');
     return response.data;
   },
@@ -34,8 +35,23 @@ export const userService = {
     return response.data;
   },
 
-  async changePassword(data: ChangePasswordDto): Promise<{ data: any; meta: { message: string } }> {
+  async changePassword(
+    data: ChangePasswordDto
+  ): Promise<{ data: unknown; meta: { message: string } }> {
     const response = await api.post('/users/me/change-password', data);
+    return response.data;
+  },
+  async getNotificationSettings(): Promise<{
+    data: NotificationSettings;
+    meta: Record<string, unknown>;
+  }> {
+    const response = await api.get('/users/me/notification-settings');
+    return response.data;
+  },
+  async updateNotificationSettings(
+    data: NotificationSettings
+  ): Promise<{ data: NotificationSettings; meta: { message: string } }> {
+    const response = await api.patch('/users/me/notification-settings', data);
     return response.data;
   },
 };

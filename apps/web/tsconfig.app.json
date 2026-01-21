@@ -23,7 +23,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@idea-flow/shared": ["../../packages/shared/src/index.ts"]
+      "@ideaflow/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": ["src"],

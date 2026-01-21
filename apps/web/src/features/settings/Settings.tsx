@@ -11,6 +11,7 @@ import {
 import { Message, Input, Button, Spin, Modal, Avatar, Trigger, Card } from '@arco-design/web-react';
 import { userService, UserProfile } from '@/services/user.service';
 import { useAuth } from '@/hooks/useAuth';
+import { NotificationSettings as NotificationSettingsSection } from './NotificationSettings';
 
 const AVATAR_PRESETS = [
   'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -405,6 +406,9 @@ export function Settings() {
           </Button>
         </div>
       </motion.section>
+
+      {/* Notification Settings Section */}
+      <NotificationSettingsSection />
 
       {/* Dashboard Stats / Info (Placeholder for user request) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
