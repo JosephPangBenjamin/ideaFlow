@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Input, Button, Message, Modal, Switch } from '@arco-design/web-react';
+import { Input, Button, Message, Modal } from '@arco-design/web-react';
 import {
   IconEdit,
   IconDelete,
   IconApps,
   IconCheckCircle,
   IconBulb,
+  IconShareExternal,
 } from '@arco-design/web-react/icon';
 import { useNavigate } from 'react-router-dom';
+import { ShareSettingsModal } from '@/components/ShareSettingsModal';
 import { findOrCreateCanvasByIdeaId } from '@/features/canvas/services/canvas.service';
 import { CreateTaskModal } from '@/features/tasks/components/create-task-modal';
 import { formatFullTime } from '../../../utils/date';
@@ -16,7 +18,6 @@ import { Idea, IdeaSource } from '../types';
 import { SourceInput } from './SourceInput';
 import { SourceList } from './SourceList';
 import { MemoryRecoveryCard } from './MemoryRecoveryCard';
-import ShareLinkCopy from '../../../components/ShareLinkCopy';
 import { ideasService } from '../services/ideas.service';
 
 interface Props {
@@ -31,6 +32,7 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
+  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
 
   const hasTask = (idea.tasks?.length ?? 0) > 0;
   const hasCanvas = !!idea.canvas;
@@ -182,6 +184,14 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
             <Button
               type="text"
               size="mini"
+              icon={<IconShareExternal />}
+              onClick={() => setIsShareModalVisible(true)}
+              className="text-slate-400 hover:text-green-400 hover:bg-green-400/10"
+              title="分享想法"
+            />
+            <Button
+              type="text"
+              size="mini"
               icon={<IconDelete />}
               onClick={handleDelete}
               className="text-slate-500 hover:text-red-400 hover:bg-red-400/10"
@@ -248,15 +258,6 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
                 ? `想法来源 (${idea.sources.length})`
                 : '想法内容'}
             </span>
-            <div className="flex items-center gap-2 bg-white/5 px-2 py-1 rounded-lg border border-white/5">
-              <span className="text-[10px] text-slate-500 uppercase font-medium">公开</span>
-              <Switch
-                size="small"
-                checked={idea.isPublic}
-                loading={visibilityMutation.isPending}
-                onChange={(checked) => visibilityMutation.mutate(checked)}
-              />
-            </div>
           </div>
           {!isEditing && (
             <div className="flex gap-1.5">
@@ -270,13 +271,6 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
           )}
         </div>
       </div>
-
-      {/* Share Link Area */}
-      {idea.isPublic && idea.publicToken && (
-        <div className="px-6 py-2 bg-blue-500/5 border-b border-blue-500/10">
-          <ShareLinkCopy token={idea.publicToken} type="idea" />
-        </div>
-      )}
 
       {/* Scrollable Content Area */}
       <div
@@ -362,6 +356,16 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
             // Modal handles confetti delay before calling onSuccess, so we can navigate now
             navigate(`/tasks/${taskId}`);
           }
+        }}
+      />
+      <ShareSettingsModal
+        visible={isShareModalVisible}
+        onClose={() => setIsShareModalVisible(false)}
+        type="idea"
+        isPublic={!!idea.isPublic}
+        publicToken={idea.publicToken || null}
+        onVisibilityChange={async (checked) => {
+          await visibilityMutation.mutateAsync(checked);
         }}
       />
     </div>

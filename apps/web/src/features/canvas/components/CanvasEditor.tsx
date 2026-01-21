@@ -26,7 +26,7 @@ import { CanvasNode } from './CanvasNode';
 import { ConnectionLine } from './ConnectionLine';
 import { ZoomIndicator } from './ZoomIndicator';
 import { CanvasToolbar } from './CanvasToolbar'; // Canvas V2: Manual Toolbar
-import { CanvasVisibilitySettings } from './CanvasVisibilitySettings';
+import { ShareSettingsModal } from '@/components/ShareSettingsModal';
 import {
   currentCanvasAtom,
   canvasNodesAtom,
@@ -181,6 +181,7 @@ export function CanvasEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -1360,6 +1361,7 @@ export function CanvasEditor({
               }
             }}
             onSave={savePendingUpdates}
+            onShare={() => setIsShareModalVisible(true)}
             isSaving={isSaving}
             hasPendingUpdates={Object.keys(pendingUpdates).length > 0}
           />,
@@ -1550,20 +1552,6 @@ export function CanvasEditor({
                 )}
             </div>
 
-            {/* Canvas Visibility Settings (Only shown when no specific node is selected or edited) */}
-            <div className="mb-10 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl">
-              <div className="text-[11px] font-bold text-slate-400 mb-5 uppercase tracking-[0.1em] flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,1)]" />
-                可见性与分享
-              </div>
-              <CanvasVisibilitySettings
-                canvas={canvas}
-                onUpdate={(updatedCanvas) => {
-                  setCurrentCanvas(updatedCanvas);
-                }}
-              />
-            </div>
-
             {/* Danger Zone */}
             <div className="mt-12 pt-6 border-t border-white/5">
               <Button
@@ -1677,6 +1665,27 @@ export function CanvasEditor({
           border-color: #ef4444 !important;
         }
       `}</style>
+      <ShareSettingsModal
+        visible={isShareModalVisible}
+        onClose={() => setIsShareModalVisible(false)}
+        type="canvas"
+        isPublic={!!canvas.isPublic}
+        publicToken={canvas.publicToken || null}
+        onVisibilityChange={async (checked) => {
+          try {
+            const response = await api.patch(`/canvases/${canvas.id}/visibility`, {
+              isPublic: checked,
+            });
+            setCurrentCanvas(response.data.data);
+            queryClient.invalidateQueries({ queryKey: ['canvases'] });
+            queryClient.invalidateQueries({ queryKey: ['canvas', canvas.id] });
+            Message.success(checked ? '画布已设为公开' : '画布已设为私密');
+          } catch (error) {
+            Message.error('更新可见性失败');
+            throw error;
+          }
+        }}
+      />
     </div>
   );
 }

@@ -1,11 +1,19 @@
 import React from 'react';
 import { Button, Space, Tooltip } from '@arco-design/web-react';
-import { IconPlus, IconMessage, IconImage, IconSave, IconApps } from '@arco-design/web-react/icon';
+import {
+  IconPlus,
+  IconMessage,
+  IconImage,
+  IconSave,
+  IconApps,
+  IconShareExternal,
+} from '@arco-design/web-react/icon';
 import { CanvasNodeType as NodeTypeEnum } from '../services/canvas.service';
 
 interface CanvasToolbarProps {
   onAddNode: (type: NodeTypeEnum) => void;
   onSave: () => void;
+  onShare: () => void;
   isSaving?: boolean;
   hasPendingUpdates?: boolean;
 }
@@ -13,6 +21,7 @@ interface CanvasToolbarProps {
 export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   onAddNode,
   onSave,
+  onShare,
   isSaving = false,
   hasPendingUpdates = false,
 }) => {
@@ -64,6 +73,18 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
             onClick={() => onAddNode(NodeTypeEnum.region)}
             aria-label="创建区域"
             className="bg-purple-600 border-none text-white hover:bg-purple-500 hover:scale-110 transition-transform"
+          />
+        </Tooltip>
+
+        <Tooltip content="分享画布" position="bottom">
+          <Button
+            size="small"
+            shape="circle"
+            type="secondary"
+            icon={<IconShareExternal />}
+            onClick={onShare}
+            aria-label="分享画布"
+            className="bg-green-600 border-none text-white hover:bg-green-500 hover:scale-110 transition-transform"
           />
         </Tooltip>
 
