@@ -2,12 +2,7 @@ import React from 'react';
 import { Notification } from '../types';
 import { Typography, Space, Tag } from '@arco-design/web-react';
 import { IconClockCircle } from '@arco-design/web-react/icon';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import 'dayjs/locale/zh-cn';
-
-dayjs.extend(relativeTime);
-dayjs.locale('zh-cn');
+import dayjs from '@/utils/dayjs';
 
 interface NotificationItemProps {
   notification: Notification;

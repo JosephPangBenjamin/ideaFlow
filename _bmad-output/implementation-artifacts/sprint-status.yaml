@@ -17,7 +17,7 @@
 #
 # Story Status:
 #   - backlog: Story only exists in epic file
-#   - ready-for-dev: Story file created in stories folder
+#   - completed: Story file created in stories folder
 #   - in-progress: Developer actively working on implementation
 #   - review: Ready for code review (via Dev's code-review workflow)
 #   - done: Story completed
@@ -118,7 +118,7 @@ development_status:
   epic-7: in-progress
   7-1-public-private-view-toggle: done
   7-2-share-link-generation: done
-  7-3-notification-center: backlog
+  7-3-notification-center: done
   7-4-notification-preferences: backlog
   7-5-third-party-login: backlog
   epic-7-retrospective: optional

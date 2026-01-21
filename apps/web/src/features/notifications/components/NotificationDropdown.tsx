@@ -5,8 +5,33 @@ import { NotificationItem } from './NotificationItem';
 import { useNavigate } from 'react-router-dom';
 
 export const NotificationDropdown: React.FC = () => {
-  const { notifications, isLoading, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, isLoading, hasMore, markAsRead, markAllAsRead, loadMore } =
+    useNotifications();
   const navigate = useNavigate();
+  const observerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !isLoading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, loadMore]);
+
+  interface NotificationPayload {
+    ideaId?: string;
+    canvasId?: string;
+    [key: string]: unknown;
+  }
 
   const handleItemClick = (id: string) => {
     const notification = notifications.find((n) => n.id === id);
@@ -14,6 +39,13 @@ export const NotificationDropdown: React.FC = () => {
 
     if (notification?.type === 'stale_reminder') {
       navigate('/ideas?isStale=true');
+    } else if (notification?.data) {
+      const data = notification.data as NotificationPayload;
+      if (data.ideaId) {
+        navigate(`/ideas/${data.ideaId}`);
+      } else if (data.canvasId) {
+        navigate(`/canvas/${data.canvasId}`);
+      }
     }
   };
 
@@ -55,15 +87,20 @@ export const NotificationDropdown: React.FC = () => {
             <Empty description="暂无通知" />
           </div>
         )}
+
+        {/* 滚动观察点 */}
+        <div ref={observerRef} className="h-4 w-full flex justify-center items-center py-2">
+          {isLoading && notifications.length > 0 && <Spin />}
+        </div>
       </div>
 
-      {notifications.length > 0 && (
+      {hasMore && (
         <div className="p-3 border-t border-slate-100 dark:border-slate-700 text-center bg-slate-50/30 dark:bg-slate-800/30">
           <Typography.Text
             className="text-slate-400 dark:text-slate-500"
             style={{ fontSize: '12px' }}
           >
-            仅显示最近 50 条通知
+            加载中...
           </Typography.Text>
         </div>
       )}

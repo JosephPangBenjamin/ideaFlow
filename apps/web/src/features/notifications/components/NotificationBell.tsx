@@ -18,7 +18,7 @@ export const NotificationBell: React.FC = () => {
   return (
     <Dropdown droplist={<NotificationDropdown />} trigger="click" position="br">
       <div className="relative cursor-pointer">
-        <Badge count={unreadCount} maxCount={99} dot={unreadCount > 0 && unreadCount === 0}>
+        <Badge count={unreadCount} maxCount={99}>
           <motion.div
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
