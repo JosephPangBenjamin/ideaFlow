@@ -54,6 +54,8 @@ export interface Idea {
   sources?: IdeaSource[]; // 数组形式，与 Prisma schema 一致
   userId: string;
   isStale?: boolean; // 沉底状态：7天未操作
+  isPublic: boolean; // 是否公开
+  publicToken?: string | null; // 公开 Token
   createdAt: string;
   updatedAt: string;
 }
@@ -93,6 +95,8 @@ export interface Canvas {
   id: string;
   name: string;
   userId: string;
+  isPublic: boolean; // 是否公开
+  publicToken?: string | null; // 公开 Token
   nodes: CanvasNode[];
   connections: CanvasConnection[];
   createdAt: string;

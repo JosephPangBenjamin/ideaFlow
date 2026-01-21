@@ -40,6 +40,8 @@ model Idea {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
+  isPublic    Boolean  @default(false) @map("is_public")
+  publicToken String?  @unique @map("public_token")
 
   user   User    @relation(fields: [userId], references: [id])
   tasks  Task[]
@@ -113,6 +115,8 @@ model Canvas {
   ideaId    String?  @unique @map("idea_id")  // Canvas V2: 关联的核心想法（一对一，可选以支持迁移）
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  isPublic    Boolean  @default(false) @map("is_public")
+  publicToken String?  @unique @map("public_token")
 
   user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   idea        Idea?             @relation(fields: [ideaId], references: [id], onDelete: Cascade)

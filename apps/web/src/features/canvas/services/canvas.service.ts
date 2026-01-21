@@ -23,6 +23,8 @@ export interface Canvas {
   } | null;
   createdAt: string;
   updatedAt: string;
+  isPublic: boolean;
+  publicToken?: string | null;
   nodes?: CanvasNode[];
   _count?: { nodes: number };
 }
@@ -210,5 +212,14 @@ export const updateConnection = async (
 
 export const deleteConnection = async (connectionId: string): Promise<{ message: string }> => {
   const response = await api.delete(`/canvases/connections/${connectionId}`);
+  return response.data;
+};
+
+// 更新画布可见性 (Story 7.1)
+export const updateCanvasVisibility = async (
+  id: string,
+  isPublic: boolean
+): Promise<{ data: Canvas }> => {
+  const response = await api.patch(`/canvases/${id}/visibility`, { isPublic });
   return response.data;
 };

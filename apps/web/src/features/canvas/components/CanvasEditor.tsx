@@ -26,6 +26,7 @@ import { CanvasNode } from './CanvasNode';
 import { ConnectionLine } from './ConnectionLine';
 import { ZoomIndicator } from './ZoomIndicator';
 import { CanvasToolbar } from './CanvasToolbar'; // Canvas V2: Manual Toolbar
+import { CanvasVisibilitySettings } from './CanvasVisibilitySettings';
 import {
   currentCanvasAtom,
   canvasNodesAtom,
@@ -1320,6 +1321,21 @@ export function CanvasEditor({
         </Layer>
       </Stage>
 
+      {/* Canvas Settings Button */}
+      <div className="absolute top-6 right-6 z-10">
+        <Button
+          type="primary"
+          shape="circle"
+          size="large"
+          className="shadow-xl bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 hover:scale-110 transition-all duration-300"
+          icon={<IconSettings style={{ fontSize: 20 }} />}
+          onClick={() => {
+            setEditingNodeId(null); // Clear selection to show canvas settings
+            setIsDrawerVisible(true);
+          }}
+        />
+      </div>
+
       {/* Canvas Toolbars - Portaled to Header */}
       {mounted &&
         document.getElementById('canvas-toolbar-portal') &&
@@ -1384,16 +1400,20 @@ export function CanvasEditor({
       <Drawer
         width={380}
         title={
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 shadow-xl shadow-black/10 transition-transform group-hover:scale-110">
-              <IconSettings style={{ fontSize: 20, color: '#60a5fa' }} />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center backdrop-blur-md shadow-inner">
+              {editingNodeId ? (
+                <IconEdit style={{ fontSize: 20, color: '#60a5fa' }} />
+              ) : (
+                <IconSettings style={{ fontSize: 20, color: '#60a5fa' }} />
+              )}
             </div>
             <div>
               <div className="text-[10px] font-bold text-blue-400 uppercase tracking-[0.2em] mb-0.5">
-                Editor
+                {editingNodeId ? 'EDIT MODE' : 'SETTINGS'}
               </div>
               <h2 className="text-lg font-heading font-bold text-white tracking-tight leading-none">
-                节点样式编辑
+                {editingNodeId ? '节点样式编辑' : '画布设置'}
               </h2>
             </div>
           </div>
@@ -1401,26 +1421,28 @@ export function CanvasEditor({
         visible={isDrawerVisible}
         onOk={handleSaveNodeContent}
         onCancel={() => setIsDrawerVisible(false)}
-        okText="确认修改"
+        okText={editingNodeId ? '确认修改' : '关闭'}
         cancelText="取消"
         className="canvas-node-drawer"
         footer={
-          <div className="grid grid-cols-2 gap-4 w-full">
-            <Button
-              className="rounded-2xl h-12 bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition-all duration-300 font-medium tracking-wide"
-              onClick={() => setIsDrawerVisible(false)}
-            >
-              取消
-            </Button>
-            <Button
-              type="primary"
-              className="rounded-2xl h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 border-none shadow-xl shadow-blue-500/20 font-bold transition-all duration-300 active:scale-[0.98]"
-              onClick={handleSaveNodeContent}
-              loading={isSaving}
-            >
-              完成更新
-            </Button>
-          </div>
+          editingNodeId ? (
+            <div className="grid grid-cols-2 gap-4 w-full">
+              <Button
+                className="rounded-2xl h-12 bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition-all duration-300 font-medium tracking-wide"
+                onClick={() => setIsDrawerVisible(false)}
+              >
+                取消
+              </Button>
+              <Button
+                type="primary"
+                className="rounded-2xl h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 border-none shadow-xl shadow-blue-500/20 font-bold transition-all duration-300 active:scale-[0.98]"
+                onClick={handleSaveNodeContent}
+                loading={isSaving}
+              >
+                完成更新
+              </Button>
+            </div>
+          ) : null
         }
       >
         <div className="relative px-1 py-1 overflow-hidden min-h-full">
@@ -1428,137 +1450,149 @@ export function CanvasEditor({
           <div className="absolute -top-20 -right-20 w-48 h-48 bg-blue-500/20 rounded-full blur-[80px] pointer-events-none" />
           <div className="absolute top-1/2 -left-20 w-40 h-40 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none" />
 
-          <div className="relative z-10">
-            <Form form={form} layout="vertical">
-              {/* Basic Content */}
-              {editingNodeId &&
-                nodes.find((n) => n.id === editingNodeId)?.type !== NodeTypeEnum.image && (
-                  <div className="mb-8">
-                    <div className="text-[11px] font-bold text-slate-400 mb-4 uppercase tracking-[0.1em] flex items-center gap-2 opaciy-80">
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,1)]" />
-                      节点内容
-                    </div>
-                    <Form.Item field="content" noStyle>
-                      <Input.TextArea
-                        className="modern-textarea"
-                        autoSize={{ minRows: 3, maxRows: 8 }}
-                        placeholder="在这里输入想法..."
-                      />
+          <Form form={form} layout="vertical">
+            {/* Basic Content */}
+            {editingNodeId &&
+              nodes.find((n) => n.id === editingNodeId)?.type !== NodeTypeEnum.image && (
+                <div className="mb-8">
+                  <div className="text-[11px] font-bold text-slate-400 mb-4 uppercase tracking-[0.1em] flex items-center gap-2 opaciy-80">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,1)]" />
+                    节点内容
+                  </div>
+                  <Form.Item field="content" noStyle>
+                    <Input.TextArea
+                      className="modern-textarea"
+                      autoSize={{ minRows: 3, maxRows: 8 }}
+                      placeholder="在这里输入想法..."
+                    />
+                  </Form.Item>
+                </div>
+              )}
+
+            {/* Image Source for Image Nodes */}
+            {editingNodeId &&
+              nodes.find((n) => n.id === editingNodeId)?.type === NodeTypeEnum.image && (
+                <SidebarImageUpload
+                  label="图片文件"
+                  value={nodes.find((n) => n.id === editingNodeId)?.imageUrl || undefined}
+                  onChange={(url) => {
+                    setNodes((prev) =>
+                      prev.map((n) => (n.id === editingNodeId ? { ...n, imageUrl: url } : n))
+                    );
+                  }}
+                />
+              )}
+
+            {/* Typography Section */}
+            {editingNodeId &&
+              nodes.find((n) => n.id === editingNodeId)?.type !== NodeTypeEnum.image && (
+                <div className="mb-8 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl">
+                  <div className="text-[11px] font-bold text-slate-400 mb-5 uppercase tracking-[0.1em] flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,1)]" />
+                    文字排版
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <Form.Item label="字体大小" field="fontSize">
+                      <Slider min={10} max={36} step={1} showTicks />
+                    </Form.Item>
+                    <Form.Item label="文字颜色" field="textColor">
+                      <ColorPicker className="w-full h-10" />
                     </Form.Item>
                   </div>
-                )}
+                </div>
+              )}
 
-              {/* Image Source for Image Nodes */}
-              {editingNodeId &&
-                nodes.find((n) => n.id === editingNodeId)?.type === NodeTypeEnum.image && (
-                  <SidebarImageUpload
-                    label="图片文件"
-                    value={nodes.find((n) => n.id === editingNodeId)?.imageUrl || undefined}
-                    onChange={(url) => {
-                      setNodes((prev) =>
-                        prev.map((n) => (n.id === editingNodeId ? { ...n, imageUrl: url } : n))
-                      );
-                    }}
-                  />
-                )}
+            {/* Appearance Section */}
+            <div className="mb-10 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl">
+              <div className="text-[11px] font-bold text-slate-400 mb-5 uppercase tracking-[0.1em] flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,1)]" />
+                视觉表现
+              </div>
 
-              {/* Typography Section */}
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <Form.Item label="背景颜色" field="fill">
+                  <ColorPicker showPreset className="w-full h-10" />
+                </Form.Item>
+                <Form.Item label="边框颜色" field="stroke">
+                  <ColorPicker showPreset className="w-full h-10" />
+                </Form.Item>
+              </div>
+
               {editingNodeId &&
                 nodes.find((n) => n.id === editingNodeId)?.type !== NodeTypeEnum.image && (
-                  <div className="mb-8 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl">
-                    <div className="text-[11px] font-bold text-slate-400 mb-5 uppercase tracking-[0.1em] flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,1)]" />
-                      文字排版
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-6">
-                      <Form.Item label="字体大小" field="fontSize">
-                        <Slider min={10} max={36} step={1} showTicks />
-                      </Form.Item>
-                      <Form.Item label="文字颜色" field="textColor">
-                        <ColorPicker className="w-full h-10" />
-                      </Form.Item>
-                    </div>
+                  <div className="mt-4 border-t border-white/5 pt-6">
+                    <SidebarImageUpload
+                      label="背景图片"
+                      value={
+                        nodes.find((n) => n.id === editingNodeId)?.style?.backgroundImage ||
+                        undefined
+                      }
+                      onChange={(url) => {
+                        const nodeId = editingNodeId;
+                        setNodes((prev) =>
+                          prev.map((n) => {
+                            if (n.id === nodeId) {
+                              return {
+                                ...n,
+                                style: {
+                                  ...((n.style as any) || {}),
+                                  backgroundImage: url,
+                                },
+                              };
+                            }
+                            return n;
+                          })
+                        );
+                      }}
+                    />
                   </div>
                 )}
+            </div>
 
-              {/* Appearance Section */}
-              <div className="mb-10 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl">
-                <div className="text-[11px] font-bold text-slate-400 mb-5 uppercase tracking-[0.1em] flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,1)]" />
-                  视觉表现
-                </div>
-
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <Form.Item label="背景颜色" field="fill">
-                    <ColorPicker showPreset className="w-full h-10" />
-                  </Form.Item>
-                  <Form.Item label="边框颜色" field="stroke">
-                    <ColorPicker showPreset className="w-full h-10" />
-                  </Form.Item>
-                </div>
-
-                {editingNodeId &&
-                  nodes.find((n) => n.id === editingNodeId)?.type !== NodeTypeEnum.image && (
-                    <div className="mt-4 border-t border-white/5 pt-6">
-                      <SidebarImageUpload
-                        label="背景图片"
-                        value={
-                          nodes.find((n) => n.id === editingNodeId)?.style?.backgroundImage ||
-                          undefined
-                        }
-                        onChange={(url) => {
-                          const nodeId = editingNodeId;
-                          setNodes((prev) =>
-                            prev.map((n) => {
-                              if (n.id === nodeId) {
-                                return {
-                                  ...n,
-                                  style: {
-                                    ...((n.style as any) || {}),
-                                    backgroundImage: url,
-                                  },
-                                };
-                              }
-                              return n;
-                            })
-                          );
-                        }}
-                      />
-                    </div>
-                  )}
+            {/* Canvas Visibility Settings (Only shown when no specific node is selected or edited) */}
+            <div className="mb-10 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl">
+              <div className="text-[11px] font-bold text-slate-400 mb-5 uppercase tracking-[0.1em] flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,1)]" />
+                可见性与分享
               </div>
+              <CanvasVisibilitySettings
+                canvas={canvas}
+                onUpdate={(updatedCanvas) => {
+                  setCurrentCanvas(updatedCanvas);
+                }}
+              />
+            </div>
 
-              {/* Danger Zone */}
-              <div className="mt-12 pt-6 border-t border-white/5">
-                <Button
-                  status="danger"
-                  type="secondary"
-                  long
-                  className="rounded-xl h-11 group transition-all hover:bg-red-500/10"
-                  onClick={() => {
-                    if (editingNodeId) {
-                      Modal.confirm({
-                        title: '确定要删除此节点吗？',
-                        content: '删除后无法撤销，所有关联的连线也将被删除。',
-                        okButtonProps: { status: 'danger' },
-                        onOk: () => {
-                          const e = new KeyboardEvent('keydown', { key: 'Delete' });
-                          window.dispatchEvent(e);
-                          setIsDrawerVisible(false);
-                        },
-                      });
-                    }
-                  }}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <IconDelete />
-                    <span>删除此节点</span>
-                  </div>
-                </Button>
-              </div>
-            </Form>
-          </div>
+            {/* Danger Zone */}
+            <div className="mt-12 pt-6 border-t border-white/5">
+              <Button
+                status="danger"
+                type="secondary"
+                long
+                className="rounded-xl h-11 group transition-all hover:bg-red-500/10"
+                onClick={() => {
+                  if (editingNodeId) {
+                    Modal.confirm({
+                      title: '确定要删除此节点吗？',
+                      content: '删除后无法撤销，所有关联的连线也将被删除。',
+                      okButtonProps: { status: 'danger' },
+                      onOk: () => {
+                        const e = new KeyboardEvent('keydown', { key: 'Delete' });
+                        window.dispatchEvent(e);
+                        setIsDrawerVisible(false);
+                      },
+                    });
+                  }
+                }}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <IconDelete />
+                  <span>删除此节点</span>
+                </div>
+              </Button>
+            </div>
+          </Form>
         </div>
       </Drawer>
 

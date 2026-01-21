@@ -5,6 +5,7 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CanvasNodeType } from '@prisma/client';
 import { CreateCanvasDto } from './dto/create-canvas.dto';
@@ -577,5 +578,81 @@ export class CanvasesService {
     });
 
     return { data: connections };
+  }
+
+  async updateVisibility(userId: string, canvasId: string, isPublic: boolean) {
+    const canvas = await this.prisma.canvas.findUnique({
+      where: { id: canvasId },
+    });
+
+    if (!canvas || canvas.userId !== userId) {
+      throw new NotFoundException('画布不存在');
+    }
+
+    let publicToken = canvas.publicToken;
+    if (isPublic && !publicToken) {
+      publicToken = randomUUID();
+    } else if (!isPublic) {
+      publicToken = null;
+    }
+
+    const updated = await this.prisma.canvas.update({
+      where: { id: canvasId },
+      data: {
+        isPublic,
+        publicToken,
+      },
+    });
+
+    return { data: updated };
+  }
+
+  async findByToken(token: string) {
+    const canvas = await this.prisma.canvas.findUnique({
+      where: { publicToken: token },
+      include: {
+        nodes: {
+          include: {
+            idea: {
+              select: {
+                id: true,
+                content: true,
+                sources: true,
+              },
+            },
+          },
+        },
+        connections: true,
+      },
+    });
+
+    if (!canvas || !canvas.isPublic) {
+      throw new NotFoundException('该页面不存在或已设为私密');
+    }
+
+    // 过滤私密字段: 排除 nodes[].idea.sources 中的 note 字段
+    const filteredNodes = canvas.nodes.map((node) => {
+      if (node.idea && node.idea.sources) {
+        const filteredSources = (node.idea.sources as any[]).map((source) => {
+          const { note, ...rest } = source;
+          return rest;
+        });
+        return {
+          ...node,
+          idea: {
+            ...node.idea,
+            sources: filteredSources,
+          },
+        };
+      }
+      return node;
+    });
+
+    return {
+      data: {
+        ...canvas,
+        nodes: filteredNodes,
+      },
+    };
   }
 }

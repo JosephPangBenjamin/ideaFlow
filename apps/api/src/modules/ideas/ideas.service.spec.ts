@@ -292,7 +292,7 @@ describe('IdeasService', () => {
 
       expect(prisma.idea.update).toHaveBeenCalledWith({
         where: { id: ideaId },
-        data: updateDto,
+        data: { ...updateDto, isStale: false },
       });
       expect(result).toEqual({ data: updatedIdea });
     });
@@ -319,7 +319,7 @@ describe('IdeasService', () => {
 
       expect(prisma.idea.update).toHaveBeenCalledWith({
         where: { id: ideaId },
-        data: updateDto,
+        data: { ...updateDto, isStale: false },
       });
       expect(result).toEqual({ data: updatedIdea });
     });
@@ -404,6 +404,254 @@ describe('IdeasService', () => {
       (prisma.idea.findUnique as jest.Mock).mockResolvedValue(otherUserIdea);
 
       await expect(service.remove(userId, ideaId)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // ==================== Story 7.1: 可见性功能测试 ====================
+
+  describe('updateVisibility', () => {
+    it('should generate publicToken when setting to public', async () => {
+      const userId = 'user-1';
+      const ideaId = 'idea-1';
+      const existingIdea = {
+        id: ideaId,
+        userId,
+        isPublic: false,
+        publicToken: null,
+      };
+      const updatedIdea = {
+        ...existingIdea,
+        isPublic: true,
+        publicToken: 'generated-uuid-token',
+      };
+
+      (prisma.idea.findUnique as jest.Mock).mockResolvedValue(existingIdea);
+      (prisma.idea.update as jest.Mock).mockResolvedValue(updatedIdea);
+
+      const result = await service.updateVisibility(userId, ideaId, true);
+
+      expect(prisma.idea.update).toHaveBeenCalledWith({
+        where: { id: ideaId },
+        data: {
+          isPublic: true,
+          publicToken: expect.any(String), // 验证生成了 Token
+        },
+      });
+      expect(result.data.isPublic).toBe(true);
+      expect(result.data.publicToken).toBeTruthy();
+    });
+
+    it('should clear publicToken when setting to private', async () => {
+      const userId = 'user-1';
+      const ideaId = 'idea-1';
+      const existingIdea = {
+        id: ideaId,
+        userId,
+        isPublic: true,
+        publicToken: 'existing-token',
+      };
+      const updatedIdea = {
+        ...existingIdea,
+        isPublic: false,
+        publicToken: null,
+      };
+
+      (prisma.idea.findUnique as jest.Mock).mockResolvedValue(existingIdea);
+      (prisma.idea.update as jest.Mock).mockResolvedValue(updatedIdea);
+
+      const result = await service.updateVisibility(userId, ideaId, false);
+
+      expect(prisma.idea.update).toHaveBeenCalledWith({
+        where: { id: ideaId },
+        data: {
+          isPublic: false,
+          publicToken: null, // 验证清空了 Token
+        },
+      });
+      expect(result.data.isPublic).toBe(false);
+      expect(result.data.publicToken).toBeNull();
+    });
+
+    it('should throw NotFoundException if idea does not exist', async () => {
+      const userId = 'user-1';
+      const ideaId = 'non-existent';
+
+      (prisma.idea.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.updateVisibility(userId, ideaId, true)).rejects.toThrow(
+        NotFoundException
+      );
+    });
+
+    it('should throw NotFoundException if user is not the owner', async () => {
+      const userId = 'user-1';
+      const ideaId = 'idea-1';
+      const otherUserIdea = {
+        id: ideaId,
+        userId: 'user-2',
+        isPublic: false,
+        publicToken: null,
+      };
+
+      (prisma.idea.findUnique as jest.Mock).mockResolvedValue(otherUserIdea);
+
+      await expect(service.updateVisibility(userId, ideaId, true)).rejects.toThrow(
+        NotFoundException
+      );
+    });
+
+    it('should reuse existing publicToken when already public', async () => {
+      const userId = 'user-1';
+      const ideaId = 'idea-1';
+      const existingToken = 'existing-uuid-token';
+      const existingIdea = {
+        id: ideaId,
+        userId,
+        isPublic: true,
+        publicToken: existingToken,
+      };
+      const updatedIdea = {
+        ...existingIdea,
+        isPublic: true,
+        publicToken: existingToken, // 保持不变
+      };
+
+      (prisma.idea.findUnique as jest.Mock).mockResolvedValue(existingIdea);
+      (prisma.idea.update as jest.Mock).mockResolvedValue(updatedIdea);
+
+      const result = await service.updateVisibility(userId, ideaId, true);
+
+      expect(prisma.idea.update).toHaveBeenCalledWith({
+        where: { id: ideaId },
+        data: {
+          isPublic: true,
+          publicToken: existingToken, // 验证重用了现有 Token
+        },
+      });
+      expect(result.data.publicToken).toBe(existingToken);
+    });
+  });
+
+  describe('findByToken', () => {
+    it('should return public idea by token', async () => {
+      const token = 'valid-public-token';
+      const publicIdea = {
+        id: 'idea-1',
+        content: 'Public Idea',
+        userId: 'user-1',
+        isPublic: true,
+        publicToken: token,
+        sources: [
+          { type: 'link', url: 'https://example.com', note: '私密笔记' },
+          { type: 'text', content: 'Some text', note: '另一个私密笔记' },
+        ],
+        tasks: [],
+        canvas: null,
+      };
+
+      (prisma.idea.findUnique as jest.Mock).mockResolvedValue(publicIdea);
+
+      const result = await service.findByToken(token);
+
+      expect(prisma.idea.findUnique).toHaveBeenCalledWith({
+        where: { publicToken: token },
+        include: {
+          tasks: {
+            select: {
+              id: true,
+              status: true,
+              title: true,
+              description: true,
+              category: true,
+              dueDate: true,
+              createdAt: true,
+            },
+          },
+          canvas: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+      expect(result.data.id).toBe('idea-1');
+    });
+
+    it('should filter out note field from sources in public view', async () => {
+      const token = 'valid-public-token';
+      const publicIdea = {
+        id: 'idea-1',
+        content: 'Public Idea',
+        userId: 'user-1',
+        isPublic: true,
+        publicToken: token,
+        sources: [
+          { type: 'link', url: 'https://example.com', title: 'Example', note: '私密笔记' },
+          { type: 'text', content: 'Some text', note: '另一个私密笔记' },
+        ],
+        tasks: [],
+        canvas: null,
+      };
+
+      (prisma.idea.findUnique as jest.Mock).mockResolvedValue(publicIdea);
+
+      const result = await service.findByToken(token);
+
+      // 验证返回的 sources 不包含 note 字段
+      expect(result.data.sources).toEqual([
+        { type: 'link', url: 'https://example.com', title: 'Example' },
+        { type: 'text', content: 'Some text' },
+      ]);
+      // 确保原始数据的 note 字段已被移除
+      result.data.sources!.forEach((source: any) => {
+        expect(source.note).toBeUndefined();
+      });
+    });
+
+    it('should throw NotFoundException if token does not exist', async () => {
+      const token = 'non-existent-token';
+
+      (prisma.idea.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.findByToken(token)).rejects.toThrow(NotFoundException);
+      await expect(service.findByToken(token)).rejects.toThrow('该页面不存在或已设为私密');
+    });
+
+    it('should throw NotFoundException if idea is not public', async () => {
+      const token = 'valid-token';
+      const privateIdea = {
+        id: 'idea-1',
+        content: 'Private Idea',
+        userId: 'user-1',
+        isPublic: false, // 已设为私密
+        publicToken: token,
+        sources: [],
+      };
+
+      (prisma.idea.findUnique as jest.Mock).mockResolvedValue(privateIdea);
+
+      await expect(service.findByToken(token)).rejects.toThrow(NotFoundException);
+      await expect(service.findByToken(token)).rejects.toThrow('该页面不存在或已设为私密');
+    });
+
+    it('should handle idea with null sources', async () => {
+      const token = 'valid-public-token';
+      const publicIdea = {
+        id: 'idea-1',
+        content: 'Public Idea',
+        userId: 'user-1',
+        isPublic: true,
+        publicToken: token,
+        sources: null,
+        tasks: [],
+        canvas: null,
+      };
+
+      (prisma.idea.findUnique as jest.Mock).mockResolvedValue(publicIdea);
+
+      const result = await service.findByToken(token);
+
+      expect(result.data.sources).toBeNull();
     });
   });
 });

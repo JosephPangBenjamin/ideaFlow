@@ -77,10 +77,11 @@ describe('CanvasesService', () => {
         data: {
           name: '未命名画布',
           userId,
+          ideaId: undefined,
         },
         include: {
           nodes: true,
-          idea: { select: { id: true, content: true } },
+          idea: { select: { id: true, content: true, sources: true } },
         },
       });
       expect(result).toEqual({ data: expectedCanvas });
@@ -106,10 +107,11 @@ describe('CanvasesService', () => {
         data: {
           name: '我的画布',
           userId,
+          ideaId: undefined,
         },
         include: {
           nodes: true,
-          idea: { select: { id: true, content: true } },
+          idea: { select: { id: true, content: true, sources: true } },
         },
       });
       expect(result).toEqual({ data: expectedCanvas });
@@ -267,7 +269,7 @@ describe('CanvasesService', () => {
           color: undefined,
           parentId: undefined,
         },
-        include: { idea: { select: { id: true, content: true } } },
+        include: { idea: { select: { id: true, content: true, sources: true } } },
       });
       expect(result).toEqual({ data: expectedNode });
     });
@@ -316,7 +318,7 @@ describe('CanvasesService', () => {
           color: '#ff0000',
           parentId: undefined,
         },
-        include: { idea: { select: { id: true, content: true } } },
+        include: { idea: { select: { id: true, content: true, sources: true } } },
       });
       expect(result).toEqual({ data: expectedNode });
     });
@@ -427,8 +429,8 @@ describe('CanvasesService', () => {
 
       expect(prisma.canvasNode.update).toHaveBeenCalledWith({
         where: { id: nodeId },
-        data: updateDto,
-        include: { idea: { select: { id: true, content: true } } },
+        data: { ...updateDto, style: undefined },
+        include: { idea: { select: { id: true, content: true, sources: true } } },
       });
       expect(result).toEqual({ data: updatedNode });
     });
@@ -466,8 +468,8 @@ describe('CanvasesService', () => {
 
       expect(prisma.canvasNode.update).toHaveBeenCalledWith({
         where: { id: nodeId },
-        data: updateDto,
-        include: { idea: { select: { id: true, content: true } } },
+        data: { ...updateDto, style: undefined },
+        include: { idea: { select: { id: true, content: true, sources: true } } },
       });
       expect(result).toEqual({ data: updatedNode });
     });
@@ -507,8 +509,8 @@ describe('CanvasesService', () => {
 
       expect(prisma.canvasNode.update).toHaveBeenCalledWith({
         where: { id: nodeId },
-        data: updateDto,
-        include: { idea: { select: { id: true, content: true } } },
+        data: { ...updateDto, style: undefined },
+        include: { idea: { select: { id: true, content: true, sources: true } } },
       });
     });
 
@@ -624,7 +626,7 @@ describe('CanvasesService', () => {
 
       expect(prisma.canvasNode.findMany).toHaveBeenCalledWith({
         where: { canvasId },
-        include: { idea: { select: { id: true, content: true } } },
+        include: { idea: { select: { id: true, content: true, sources: true } } },
         orderBy: { createdAt: 'asc' },
       });
       expect(result).toEqual({ data: expectedNodes });
@@ -790,6 +792,284 @@ describe('CanvasesService', () => {
         },
       });
       expect(result).toEqual({ data: expectedConnections });
+    });
+  });
+
+  // ==================== Story 7.1: Canvas 可见性功能测试 ====================
+
+  describe('updateVisibility', () => {
+    it('should generate publicToken when setting canvas to public', async () => {
+      const userId = 'user-1';
+      const canvasId = 'canvas-1';
+      const existingCanvas = {
+        id: canvasId,
+        userId,
+        isPublic: false,
+        publicToken: null,
+      };
+      const updatedCanvas = {
+        ...existingCanvas,
+        isPublic: true,
+        publicToken: 'generated-uuid-token',
+      };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(existingCanvas);
+      (prisma.canvas.update as jest.Mock).mockResolvedValue(updatedCanvas);
+
+      const result = await service.updateVisibility(userId, canvasId, true);
+
+      expect(prisma.canvas.update).toHaveBeenCalledWith({
+        where: { id: canvasId },
+        data: {
+          isPublic: true,
+          publicToken: expect.any(String), // 验证生成了 Token
+        },
+      });
+      expect(result.data.isPublic).toBe(true);
+      expect(result.data.publicToken).toBeTruthy();
+    });
+
+    it('should clear publicToken when setting canvas to private', async () => {
+      const userId = 'user-1';
+      const canvasId = 'canvas-1';
+      const existingCanvas = {
+        id: canvasId,
+        userId,
+        isPublic: true,
+        publicToken: 'existing-token',
+      };
+      const updatedCanvas = {
+        ...existingCanvas,
+        isPublic: false,
+        publicToken: null,
+      };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(existingCanvas);
+      (prisma.canvas.update as jest.Mock).mockResolvedValue(updatedCanvas);
+
+      const result = await service.updateVisibility(userId, canvasId, false);
+
+      expect(prisma.canvas.update).toHaveBeenCalledWith({
+        where: { id: canvasId },
+        data: {
+          isPublic: false,
+          publicToken: null, // 验证清空了 Token
+        },
+      });
+      expect(result.data.isPublic).toBe(false);
+      expect(result.data.publicToken).toBeNull();
+    });
+
+    it('should throw NotFoundException if canvas does not exist', async () => {
+      const userId = 'user-1';
+      const canvasId = 'non-existent';
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.updateVisibility(userId, canvasId, true)).rejects.toThrow(
+        NotFoundException
+      );
+    });
+
+    it('should throw NotFoundException if user is not the owner', async () => {
+      const userId = 'user-1';
+      const canvasId = 'canvas-1';
+      const otherUserCanvas = {
+        id: canvasId,
+        userId: 'user-2',
+        isPublic: false,
+        publicToken: null,
+      };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(otherUserCanvas);
+
+      await expect(service.updateVisibility(userId, canvasId, true)).rejects.toThrow(
+        NotFoundException
+      );
+    });
+
+    it('should reuse existing publicToken when already public', async () => {
+      const userId = 'user-1';
+      const canvasId = 'canvas-1';
+      const existingToken = 'existing-uuid-token';
+      const existingCanvas = {
+        id: canvasId,
+        userId,
+        isPublic: true,
+        publicToken: existingToken,
+      };
+      const updatedCanvas = {
+        ...existingCanvas,
+        isPublic: true,
+        publicToken: existingToken, // 保持不变
+      };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(existingCanvas);
+      (prisma.canvas.update as jest.Mock).mockResolvedValue(updatedCanvas);
+
+      const result = await service.updateVisibility(userId, canvasId, true);
+
+      expect(prisma.canvas.update).toHaveBeenCalledWith({
+        where: { id: canvasId },
+        data: {
+          isPublic: true,
+          publicToken: existingToken, // 验证重用了现有 Token
+        },
+      });
+      expect(result.data.publicToken).toBe(existingToken);
+    });
+  });
+
+  describe('findByToken', () => {
+    it('should return public canvas by token', async () => {
+      const token = 'valid-public-token';
+      const publicCanvas = {
+        id: 'canvas-1',
+        name: 'Public Canvas',
+        userId: 'user-1',
+        isPublic: true,
+        publicToken: token,
+        nodes: [],
+        connections: [],
+      };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(publicCanvas);
+
+      const result = await service.findByToken(token);
+
+      expect(prisma.canvas.findUnique).toHaveBeenCalledWith({
+        where: { publicToken: token },
+        include: {
+          nodes: {
+            include: {
+              idea: {
+                select: {
+                  id: true,
+                  content: true,
+                  sources: true,
+                },
+              },
+            },
+          },
+          connections: true,
+        },
+      });
+      expect(result.data.id).toBe('canvas-1');
+    });
+
+    it('should filter out note field from nested sources in canvas nodes', async () => {
+      const token = 'valid-public-token';
+      const publicCanvas = {
+        id: 'canvas-1',
+        name: 'Public Canvas',
+        userId: 'user-1',
+        isPublic: true,
+        publicToken: token,
+        nodes: [
+          {
+            id: 'node-1',
+            idea: {
+              id: 'idea-1',
+              content: 'Idea Content',
+              sources: [
+                { type: 'link', url: 'https://example.com', note: '私密笔记' },
+                { type: 'text', content: 'Some text', note: '另一个私密笔记' },
+              ],
+            },
+          },
+          {
+            id: 'node-2',
+            idea: {
+              id: 'idea-2',
+              content: 'Another Idea',
+              sources: [{ type: 'link', url: 'https://test.com', note: '测试笔记' }],
+            },
+          },
+        ],
+        connections: [],
+      };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(publicCanvas);
+
+      const result = await service.findByToken(token);
+
+      // 验证所有节点的 idea.sources 都不包含 note 字段
+      expect(result.data.nodes[0].idea!.sources).toEqual([
+        { type: 'link', url: 'https://example.com' },
+        { type: 'text', content: 'Some text' },
+      ]);
+      expect(result.data.nodes[1].idea!.sources).toEqual([
+        { type: 'link', url: 'https://test.com' },
+      ]);
+
+      // 确保所有 note 字段已被移除
+      result.data.nodes.forEach((node: any) => {
+        if (node.idea && node.idea.sources) {
+          node.idea.sources.forEach((source: any) => {
+            expect(source.note).toBeUndefined();
+          });
+        }
+      });
+    });
+
+    it('should throw NotFoundException if token does not exist', async () => {
+      const token = 'non-existent-token';
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.findByToken(token)).rejects.toThrow(NotFoundException);
+      await expect(service.findByToken(token)).rejects.toThrow('该页面不存在或已设为私密');
+    });
+
+    it('should throw NotFoundException if canvas is not public', async () => {
+      const token = 'valid-token';
+      const privateCanvas = {
+        id: 'canvas-1',
+        name: 'Private Canvas',
+        userId: 'user-1',
+        isPublic: false, // 已设为私密
+        publicToken: token,
+        nodes: [],
+        connections: [],
+      };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(privateCanvas);
+
+      await expect(service.findByToken(token)).rejects.toThrow(NotFoundException);
+      await expect(service.findByToken(token)).rejects.toThrow('该页面不存在或已设为私密');
+    });
+
+    it('should handle nodes without idea or with null sources', async () => {
+      const token = 'valid-public-token';
+      const publicCanvas = {
+        id: 'canvas-1',
+        name: 'Public Canvas',
+        userId: 'user-1',
+        isPublic: true,
+        publicToken: token,
+        nodes: [
+          {
+            id: 'node-1',
+            idea: null, // 节点没有关联 Idea
+          },
+          {
+            id: 'node-2',
+            idea: {
+              id: 'idea-2',
+              content: 'Idea without sources',
+              sources: null, // sources 为 null
+            },
+          },
+        ],
+        connections: [],
+      };
+
+      (prisma.canvas.findUnique as jest.Mock).mockResolvedValue(publicCanvas);
+
+      const result = await service.findByToken(token);
+
+      expect(result.data.nodes[0].idea).toBeNull();
+      expect(result.data.nodes[1].idea!.sources).toBeNull();
     });
   });
 });

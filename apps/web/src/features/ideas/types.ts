@@ -15,6 +15,8 @@ export interface Idea {
   tasks?: Array<{ id: string; status: string }>;
   canvas?: { id: string } | null;
   isStale?: boolean; // 沉底状态：7天未操作
+  isPublic?: boolean; // 公开状态
+  publicToken?: string | null; // 公开分享 Token
   createdAt: string;
   updatedAt: string;
 }

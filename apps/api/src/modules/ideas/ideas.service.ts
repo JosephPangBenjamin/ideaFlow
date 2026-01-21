@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateIdeaDto } from './dto/create-idea.dto';
 import { UpdateIdeaDto } from './dto/update-idea.dto';
@@ -142,5 +143,75 @@ export class IdeasService {
     });
 
     return { message: '想法已删除' };
+  }
+
+  async updateVisibility(userId: string, ideaId: string, isPublic: boolean) {
+    const idea = await this.prisma.idea.findUnique({
+      where: { id: ideaId },
+    });
+
+    if (!idea || idea.userId !== userId) {
+      throw new NotFoundException('想法不存在');
+    }
+
+    let publicToken = idea.publicToken;
+    if (isPublic && !publicToken) {
+      publicToken = randomUUID();
+    } else if (!isPublic) {
+      publicToken = null;
+    }
+
+    const updated = await this.prisma.idea.update({
+      where: { id: ideaId },
+      data: {
+        isPublic,
+        publicToken,
+      },
+    });
+
+    return { data: updated };
+  }
+
+  async findByToken(token: string) {
+    const idea = await this.prisma.idea.findUnique({
+      where: { publicToken: token },
+      include: {
+        tasks: {
+          select: {
+            id: true,
+            status: true,
+            title: true,
+            description: true,
+            category: true,
+            dueDate: true,
+            createdAt: true,
+          },
+        },
+        canvas: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!idea || !idea.isPublic) {
+      throw new NotFoundException('该页面不存在或已设为私密');
+    }
+
+    // 过滤私密字段: 排除 sources 中的 note 字段
+    const filteredSources = idea.sources
+      ? (idea.sources as any[]).map((source) => {
+          const { note, ...rest } = source;
+          return rest;
+        })
+      : null;
+
+    return {
+      data: {
+        ...idea,
+        sources: filteredSources,
+      },
+    };
   }
 }

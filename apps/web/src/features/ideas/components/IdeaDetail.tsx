@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Input, Button, Message, Modal } from '@arco-design/web-react';
+import { Input, Button, Message, Modal, Switch } from '@arco-design/web-react';
 import {
   IconEdit,
   IconDelete,
@@ -16,6 +16,7 @@ import { Idea, IdeaSource } from '../types';
 import { SourceInput } from './SourceInput';
 import { SourceList } from './SourceList';
 import { MemoryRecoveryCard } from './MemoryRecoveryCard';
+import ShareLinkCopy from '../../../components/ShareLinkCopy';
 import { ideasService } from '../services/ideas.service';
 
 interface Props {
@@ -74,6 +75,19 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
     },
     onError: () => Message.error('删除失败，请重试'),
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['ideas'] }),
+  });
+
+  // Visibility mutation
+  const visibilityMutation = useMutation({
+    mutationFn: (isPublic: boolean) => ideasService.updateVisibility(idea.id, isPublic),
+    onSuccess: (updatedIdea) => {
+      queryClient.invalidateQueries({ queryKey: ['ideas'] });
+      onUpdate?.(updatedIdea);
+      Message.success(updatedIdea.isPublic ? '已设为公开' : '已设为私密');
+    },
+    onError: () => {
+      Message.error('更新可见性失败');
+    },
   });
 
   const handleContentChange = (value: string) => {
@@ -228,11 +242,22 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
 
         {/* Sticky Section Title */}
         <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            {currentSection === 'sources' && idea.sources && idea.sources.length > 0
-              ? `想法来源 (${idea.sources.length})`
-              : '想法内容'}
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              {currentSection === 'sources' && idea.sources && idea.sources.length > 0
+                ? `想法来源 (${idea.sources.length})`
+                : '想法内容'}
+            </span>
+            <div className="flex items-center gap-2 bg-white/5 px-2 py-1 rounded-lg border border-white/5">
+              <span className="text-[10px] text-slate-500 uppercase font-medium">公开</span>
+              <Switch
+                size="small"
+                checked={idea.isPublic}
+                loading={visibilityMutation.isPending}
+                onChange={(checked) => visibilityMutation.mutate(checked)}
+              />
+            </div>
+          </div>
           {!isEditing && (
             <div className="flex gap-1.5">
               <div
@@ -245,6 +270,13 @@ export const IdeaDetail: React.FC<Props> = ({ idea, onUpdate, onDelete }) => {
           )}
         </div>
       </div>
+
+      {/* Share Link Area */}
+      {idea.isPublic && idea.publicToken && (
+        <div className="px-6 py-2 bg-blue-500/5 border-b border-blue-500/10">
+          <ShareLinkCopy token={idea.publicToken} type="idea" />
+        </div>
+      )}
 
       {/* Scrollable Content Area */}
       <div

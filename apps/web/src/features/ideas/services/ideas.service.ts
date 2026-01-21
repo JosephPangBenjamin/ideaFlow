@@ -35,4 +35,10 @@ export const ideasService = {
     });
     return response.data.meta.total;
   },
+
+  // 更新想法可见性 (Story 7.1)
+  updateVisibility: async (id: string, isPublic: boolean): Promise<Idea> => {
+    const response = await api.patch<{ data: Idea }>(`/ideas/${id}/visibility`, { isPublic });
+    return response.data.data;
+  },
 };

@@ -19,6 +19,7 @@ import { CreateNodeDto } from './dto/create-node.dto';
 import { UpdateNodeDto } from './dto/update-node.dto';
 import { CreateConnectionDto } from './dto/create-connection.dto';
 import { UpdateConnectionDto } from './dto/update-connection.dto';
+import { UpdateVisibilityDto } from '../ideas/dto/update-visibility.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('canvases')
@@ -141,5 +142,20 @@ export class CanvasesController {
   @HttpCode(HttpStatus.OK)
   removeConnection(@Request() req: any, @Param('connectionId') connectionId: string) {
     return this.canvasesService.removeConnection(req.user.id, connectionId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/visibility')
+  updateVisibility(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() updateVisibilityDto: UpdateVisibilityDto
+  ) {
+    return this.canvasesService.updateVisibility(req.user.id, id, updateVisibilityDto.isPublic);
+  }
+
+  @Get('public/:token')
+  findByToken(@Param('token') token: string) {
+    return this.canvasesService.findByToken(token);
   }
 }

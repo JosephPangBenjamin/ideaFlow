@@ -36,8 +36,25 @@ const LoginPage = lazy(() =>
   import('@/features/auth/pages/LoginPage').then((module) => ({ default: module.LoginPage }))
 );
 
+// Story 7.1: 公开页面组件 (无需登录)
+const PublicIdeaPage = lazy(() =>
+  import('@/pages/PublicIdeaPage').then((module) => ({ default: module.PublicIdeaPage }))
+);
+const PublicCanvasPage = lazy(() =>
+  import('@/pages/PublicCanvasPage').then((module) => ({ default: module.PublicCanvasPage }))
+);
+
 export function AppRoutes() {
   const element = useRoutes([
+    // Story 7.1: 公开分享路由 (无需登录)
+    {
+      path: '/public/idea/:token',
+      element: <PublicIdeaPage />,
+    },
+    {
+      path: '/public/canvas/:token',
+      element: <PublicCanvasPage />,
+    },
     {
       path: '/register',
       element: <RegisterPage />,

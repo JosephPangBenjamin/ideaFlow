@@ -16,6 +16,7 @@ import { IdeasService } from './ideas.service';
 import { CreateIdeaDto } from './dto/create-idea.dto';
 import { UpdateIdeaDto } from './dto/update-idea.dto';
 import { GetIdeasFilterDto } from './dto/get-ideas-filter.dto';
+import { UpdateVisibilityDto } from './dto/update-visibility.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('ideas')
@@ -51,5 +52,20 @@ export class IdeasController {
   @HttpCode(HttpStatus.OK)
   remove(@Request() req: any, @Param('id') id: string) {
     return this.ideasService.remove(req.user.id, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/visibility')
+  updateVisibility(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() updateVisibilityDto: UpdateVisibilityDto
+  ) {
+    return this.ideasService.updateVisibility(req.user.id, id, updateVisibilityDto.isPublic);
+  }
+
+  @Get('public/:token')
+  findByToken(@Param('token') token: string) {
+    return this.ideasService.findByToken(token);
   }
 }
