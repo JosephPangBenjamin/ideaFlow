@@ -5,6 +5,7 @@ import { IconUser, IconLock } from '@arco-design/web-react/icon';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { fadeInUp, staggerContainer, tapAnimation } from '@/utils/motion';
+import { SocialLoginButtons } from '../components/SocialLoginButtons';
 
 const FormItem = Form.Item;
 const { Title, Text } = Typography;
@@ -121,6 +122,9 @@ export function LoginPage() {
               </Link>
             </Text>
           </div>
+
+          {/* 第三方登录按钮 (AC: 1, 4) */}
+          <SocialLoginButtons />
         </motion.div>
 
         {/* Footer Subtle Text */}

@@ -14,7 +14,8 @@ model User {
   id        String   @id @default(cuid())
   username  String   @unique
   phone     String?  @unique
-  password  String
+  email     String?  @unique @map("email")
+  password  String?
   nickname     String?
   avatarUrl    String?  @map("avatar_url")
   createdAt    DateTime @default(now()) @map("created_at")
@@ -28,6 +29,7 @@ model User {
   categories      Category[]
   analyticsEvents AnalyticsEvent[]
   notifications   Notification[]
+  socialAccounts  SocialAccount[]
 
   @@map("users")
 }
@@ -216,4 +218,20 @@ model Notification {
   @@index([isRead])
   @@index([createdAt])
   @@map("notifications")
+}
+
+model SocialAccount {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  provider       String   // 'wechat' | 'google'
+  providerUserId String   @map("provider_user_id")
+  profile        Json
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@map("social_accounts")
 }

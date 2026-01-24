@@ -12,6 +12,7 @@ import { Message, Input, Button, Spin, Modal, Avatar, Trigger, Card } from '@arc
 import { userService, UserProfile } from '@/services/user.service';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationSettings as NotificationSettingsSection } from './NotificationSettings';
+import { LinkedAccounts } from './LinkedAccounts';
 
 const AVATAR_PRESETS = [
   'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -406,6 +407,9 @@ export function Settings() {
           </Button>
         </div>
       </motion.section>
+
+      {/* Linked Accounts Section (AC: 7) */}
+      <LinkedAccounts />
 
       {/* Notification Settings Section */}
       <NotificationSettingsSection />

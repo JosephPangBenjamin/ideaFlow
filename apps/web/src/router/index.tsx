@@ -35,6 +35,11 @@ const RegisterPage = lazy(() =>
 const LoginPage = lazy(() =>
   import('@/features/auth/pages/LoginPage').then((module) => ({ default: module.LoginPage }))
 );
+const OAuthCallbackPage = lazy(() =>
+  import('@/features/auth/pages/OAuthCallbackPage').then((module) => ({
+    default: module.OAuthCallbackPage,
+  }))
+);
 
 // Story 7.1: 公开页面组件 (无需登录)
 const PublicIdeaPage = lazy(() =>
@@ -62,6 +67,10 @@ export function AppRoutes() {
     {
       path: '/login',
       element: <LoginPage />,
+    },
+    {
+      path: '/oauth/callback',
+      element: <OAuthCallbackPage />,
     },
     // Full-width canvas detail page (outside Layout)
     {

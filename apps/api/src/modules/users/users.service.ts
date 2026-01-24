@@ -75,6 +75,10 @@ export class UsersService {
     }
 
     // Verify old password
+    if (!user.password) {
+      throw new UnauthorizedException('用户未设置密码');
+    }
+
     const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('旧密码错误');
