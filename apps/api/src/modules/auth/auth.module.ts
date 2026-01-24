@@ -6,6 +6,13 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
+import { OAuthConfigService } from './services/oauth-config.service';
+import { SocialAuthService } from './services/social-auth.service';
+import { WechatOAuthService } from './services/wechat-oauth.service';
+import { GoogleOAuthService } from './services/google-oauth.service';
+import { OAuthStateService } from './services/oauth-state.service';
+import { WechatStrategy } from './strategies/wechat.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 import { JwtStrategy } from './jwt.strategy';
 
@@ -26,7 +33,25 @@ import { JwtStrategy } from './jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService, JwtModule],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    OAuthConfigService,
+    SocialAuthService,
+    WechatOAuthService,
+    GoogleOAuthService,
+    OAuthStateService,
+    WechatStrategy,
+    GoogleStrategy,
+  ],
+  exports: [
+    AuthService,
+    JwtModule,
+    OAuthConfigService,
+    SocialAuthService,
+    WechatOAuthService,
+    GoogleOAuthService,
+    OAuthStateService,
+  ],
 })
 export class AuthModule {}

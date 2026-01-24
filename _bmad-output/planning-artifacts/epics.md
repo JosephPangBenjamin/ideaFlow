@@ -17,6 +17,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 ### Functional Requirements
 
 **用户身份管理（Phase 1）：**
+
 - FR1: 用户可以使用手机号注册账号
 - FR2: 用户可以使用手机号登录系统
 - FR3: 用户可以退出登录
@@ -24,6 +25,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - FR45: 用户可以使用用户名+密码注册/登录
 
 **想法捕捉（Phase 1）：**
+
 - FR5: 用户可以快速创建想法（闪念捕捉）
 - FR6: 系统自动记录想法的创建时间
 - FR7: 用户可以可选地添加想法来源或原因
@@ -32,6 +34,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - FR10: 用户可以删除想法
 
 **自由画布（Phase 1）：**
+
 - FR11: 用户可以在画布上自由拖拽想法节点
 - FR12: 用户可以缩放画布视图
 - FR13: 用户可以平移画布视图
@@ -44,6 +47,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - FR39: 用户可以将节点拖入区域进行分组
 
 **任务管理（Phase 1）：**
+
 - FR19: 用户可以将想法转化为任务
 - FR20: 用户可以设置任务的时间（截止日期）
 - FR21: 用户可以修改任务状态（待办/进行中/已完成）
@@ -54,24 +58,29 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - FR26: 用户可以删除任务
 
 **搜索与筛选（Phase 1）：**
+
 - FR40: 用户可以搜索想法和任务
 - FR41: 用户可以按时间/状态/分类筛选列表
 
 **上下文与记忆（Phase 1-2）：**
+
 - FR27: 用户可以查看想法的创建上下文（时间+来源）
 - FR28: 系统可以识别7天+未操作的"沉底点子"（Phase 2）
 - FR29: 系统可以向用户发送沉底点子提醒（Phase 2）
 - FR30: 用户可以查看"记忆恢复"卡片展示（Phase 2）
 
 **视图与展示（Phase 2）：**
+
 - FR31: 用户可以切换公开/私密视图
 - FR32: 系统可以生成干净的公开分享视图
 
 **通知功能（Phase 2）：**
+
 - FR43: 用户可以查看系统通知列表
 - FR44: 用户可以设置通知偏好
 
 **团队协作（Phase 3）：**
+
 - FR33: 用户可以通过链接分享画布给他人
 - FR34: 受邀用户可以注册并加入团队
 - FR35: 用户可以@成员分配任务
@@ -79,9 +88,11 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - FR37: 团队成员可以在画布上添加内容
 
 **数据埋点（Phase 1）：**
+
 - FR42: 系统记录关键用户行为（idea_created, task_completed等）
 
 **第三方登录（Phase 2）：**
+
 - FR46: 用户可以使用第三方账号登录（微信/Apple ID）
 
 **统计：总需求数 46个（Phase 1: 34个, Phase 2: 7个, Phase 3: 5个）**
@@ -89,6 +100,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 ### NonFunctional Requirements
 
 **性能：**
+
 - NFR1: 首屏加载时间（4G/WiFi）< 2s
 - NFR2: 画布节点拖拽响应 < 100ms
 - NFR3: 画布缩放平移响应 60fps 无卡顿
@@ -96,6 +108,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - NFR5: 单画布最大节点数 ≤100个
 
 **安全：**
+
 - NFR6: 用户密码加密存储（bcrypt或argon2）
 - NFR7: 数据传输加密（HTTPS/TLS 1.2+）
 - NFR8: Session管理（JWT 24h过期 + Refresh Token 7天）
@@ -105,6 +118,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - NFR26: 密码强度验证（≥8位，含字母和数字）
 
 **用户反馈：**
+
 - NFR19: 加载状态显示（所有等待操作必须显示loading）
 - NFR20: 防重复提交（按钮点击后显示loading，禁用重复点击）
 - NFR21: 错误提示（API失败时显示友好提示+重试按钮）
@@ -112,6 +126,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - NFR23: 离线提示（网络断开显示提示，恢复后自动重连）
 
 **可靠性：**
+
 - NFR11: 系统可用性 99.5% uptime
 - NFR12: 数据自动保存（操作后≤3秒保存，离线时本地缓存）
 - NFR13: 数据备份（每日备份，保留7天）
@@ -119,6 +134,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - NFR24: 日志记录（记录关键操作日志，支持运维排查）
 
 **浏览器兼容性：**
+
 - NFR15: 支持Chrome（最新-2版本）
 - NFR16: 支持Safari（最新-2版本）
 - NFR17: 支持Firefox（最新-2版本）
@@ -131,6 +147,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 **从 Architecture 文档提取的技术要求：**
 
 **Starter Template 配置：**
+
 - 使用 Monorepo（pnpm workspaces）项目结构
 - Frontend: Vite + React 18 + TypeScript + TailwindCSS
 - Backend: NestJS + TypeScript
@@ -139,23 +156,27 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - 状态管理: Jotai
 
 **认证方案（JWT + Refresh Token）：**
+
 - Access Token 过期 15 分钟
 - Refresh Token 过期 7 天，存储在 HttpOnly Cookie
 - 密码加密 bcrypt (cost=10)
 - 安全中间件：NestJS Guards、class-validator、Helmet、Rate Limiting
 
 **API 设计规范：**
+
 - API 前缀：`/ideaFlow/api/v1/...`
 - 统一 JSON 响应格式
 - 分页响应格式带 meta 信息
 
 **部署方案（Docker 自部署）：**
+
 - 前端 Nginx 静态文件
 - 后端 Docker 容器
 - PostgreSQL Docker 容器
 - GitHub Actions 自动部署
 
 **开发规范：**
+
 - TDD（测试驱动开发）
 - 核心功能 100% 测试覆盖
 - 测试框架：Vitest（前端） + Jest（NestJS） + Playwright（E2E）
@@ -164,12 +185,14 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 **从 UX 文档提取的设计要求：**
 
 **核心体验要求：**
+
 - 闪念捕捉 ≤3秒完成
 - 「创建时静默，回顾时惊艳」的上下文设计
 - 自由画布 60fps 流畅交互
 - 「私密时自由，公开时体面」的双视图设计
 
 **设计系统要求：**
+
 - 核心 UI 组件库：Arco Design
 - 画布渲染引擎：Konva.js
 - 主色：#3B82F6（蓝色）+ #8B5CF6（紫色辅助）
@@ -177,6 +200,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - 字体：系统字体优先
 
 **自定义组件：**
+
 - IdeaCard（想法卡片）
 - SourcePreview（来源预览：链接/图片/文件）
 - MemoryRecoveryCard（记忆恢复卡片）
@@ -185,11 +209,13 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 - QuickCapture（闪念捕捉）
 
 **响应式策略：**
+
 - Desktop (1024px+): 完整功能
 - Tablet (768-1023px): 核心功能（无画布编辑）
 - Mobile (<768px): 只读浏览 + 闪念捕捉
 
 **无障碍要求：**
+
 - WCAG 2.1 Level AA
 - 对比度 ≥4.5:1
 - 焦点指示清晰
@@ -197,54 +223,54 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 
 ### FR Coverage Map
 
-| FR | Epic | 描述 |
-|----|------|------|
-| FR1 | Epic 1 | 手机号注册 |
-| FR2 | Epic 1 | 手机号登录 |
-| FR3 | Epic 1 | 退出登录 |
-| FR4 | Epic 1 | 修改个人信息 |
+| FR   | Epic   | 描述                 |
+| ---- | ------ | -------------------- |
+| FR1  | Epic 1 | 手机号注册           |
+| FR2  | Epic 1 | 手机号登录           |
+| FR3  | Epic 1 | 退出登录             |
+| FR4  | Epic 1 | 修改个人信息         |
 | FR45 | Epic 1 | 用户名+密码注册/登录 |
-| FR42 | Epic 1 | 数据埋点基础 |
-| FR5 | Epic 2 | 快速创建想法 |
-| FR6 | Epic 2 | 自动记录创建时间 |
-| FR7 | Epic 2 | 可选添加来源/原因 |
-| FR8 | Epic 2 | 查看想法列表 |
-| FR9 | Epic 2 | 编辑想法 |
-| FR10 | Epic 2 | 删除想法 |
-| FR27 | Epic 2 | 查看想法上下文 |
-| FR11 | Epic 3 | 画布拖拽节点 |
-| FR12 | Epic 3 | 缩放画布视图 |
-| FR13 | Epic 3 | 平移画布视图 |
-| FR14 | Epic 3 | 节点间绘制连线 |
-| FR15 | Epic 3 | 连线添加文字标注 |
-| FR16 | Epic 3 | 删除连线 |
-| FR17 | Epic 3 | 创建多个画布 |
-| FR18 | Epic 3 | 画布间切换 |
-| FR38 | Epic 3 | 创建区域分组 |
-| FR39 | Epic 3 | 节点拖入区域 |
-| FR19 | Epic 4 | 想法转化为任务 |
-| FR20 | Epic 4 | 设置任务时间 |
-| FR21 | Epic 4 | 修改任务状态 |
-| FR22 | Epic 4 | 查看任务进度 |
-| FR23 | Epic 4 | 任务分类 |
-| FR24 | Epic 4 | 任务列表筛选 |
-| FR25 | Epic 4 | 编辑任务详情 |
-| FR26 | Epic 4 | 删除任务 |
-| FR40 | Epic 5 | 搜索想法和任务 |
-| FR41 | Epic 5 | 按条件筛选列表 |
-| FR28 | Epic 6 | 识别沉底点子 |
-| FR29 | Epic 6 | 沉底点子提醒 |
-| FR30 | Epic 6 | 记忆恢复卡片 |
-| FR31 | Epic 7 | 公开/私密视图切换 |
-| FR32 | Epic 7 | 生成公开分享视图 |
-| FR43 | Epic 7 | 系统通知列表 |
-| FR44 | Epic 7 | 通知偏好设置 |
-| FR46 | Epic 7 | 第三方账号登录 |
-| FR33 | Epic 8 | 链接分享画布 |
-| FR34 | Epic 8 | 受邀用户加入团队 |
-| FR35 | Epic 8 | @成员分配任务 |
-| FR36 | Epic 8 | 团队查看共享画布 |
-| FR37 | Epic 8 | 团队画布添加内容 |
+| FR42 | Epic 1 | 数据埋点基础         |
+| FR5  | Epic 2 | 快速创建想法         |
+| FR6  | Epic 2 | 自动记录创建时间     |
+| FR7  | Epic 2 | 可选添加来源/原因    |
+| FR8  | Epic 2 | 查看想法列表         |
+| FR9  | Epic 2 | 编辑想法             |
+| FR10 | Epic 2 | 删除想法             |
+| FR27 | Epic 2 | 查看想法上下文       |
+| FR11 | Epic 3 | 画布拖拽节点         |
+| FR12 | Epic 3 | 缩放画布视图         |
+| FR13 | Epic 3 | 平移画布视图         |
+| FR14 | Epic 3 | 节点间绘制连线       |
+| FR15 | Epic 3 | 连线添加文字标注     |
+| FR16 | Epic 3 | 删除连线             |
+| FR17 | Epic 3 | 创建多个画布         |
+| FR18 | Epic 3 | 画布间切换           |
+| FR38 | Epic 3 | 创建区域分组         |
+| FR39 | Epic 3 | 节点拖入区域         |
+| FR19 | Epic 4 | 想法转化为任务       |
+| FR20 | Epic 4 | 设置任务时间         |
+| FR21 | Epic 4 | 修改任务状态         |
+| FR22 | Epic 4 | 查看任务进度         |
+| FR23 | Epic 4 | 任务分类             |
+| FR24 | Epic 4 | 任务列表筛选         |
+| FR25 | Epic 4 | 编辑任务详情         |
+| FR26 | Epic 4 | 删除任务             |
+| FR40 | Epic 5 | 搜索想法和任务       |
+| FR41 | Epic 5 | 按条件筛选列表       |
+| FR28 | Epic 6 | 识别沉底点子         |
+| FR29 | Epic 6 | 沉底点子提醒         |
+| FR30 | Epic 6 | 记忆恢复卡片         |
+| FR31 | Epic 7 | 公开/私密视图切换    |
+| FR32 | Epic 7 | 生成公开分享视图     |
+| FR43 | Epic 7 | 系统通知列表         |
+| FR44 | Epic 7 | 通知偏好设置         |
+| FR46 | Epic 7 | 第三方账号登录       |
+| FR33 | Epic 8 | 链接分享画布         |
+| FR34 | Epic 8 | 受邀用户加入团队     |
+| FR35 | Epic 8 | @成员分配任务        |
+| FR36 | Epic 8 | 团队查看共享画布     |
+| FR37 | Epic 8 | 团队画布添加内容     |
 
 ## Epic List
 
@@ -255,6 +281,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 **FRs 覆盖**：FR1, FR2, FR3, FR4, FR45, FR42
 
 **技术说明**：
+
 - 初始化 Monorepo 项目结构（pnpm workspaces）
 - 前端：Vite + React 18 + TypeScript + TailwindCSS + Arco Design
 - 后端：NestJS + TypeScript + Prisma + PostgreSQL
@@ -271,6 +298,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 **FRs 覆盖**：FR5, FR6, FR7, FR8, FR9, FR10, FR27
 
 **技术说明**：
+
 - QuickCapture 闪念捕捉组件
 - IdeaCard 想法卡片组件
 - SourcePreview 来源预览组件（链接/图片/文件）
@@ -287,6 +315,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 **FRs 覆盖**：FR11, FR12, FR13, FR14, FR15, FR16, FR17, FR18, FR38, FR39
 
 **技术说明**：
+
 - Konva.js 画布渲染引擎
 - 60fps 流畅交互（NFR3）
 - CanvasNode 画布节点组件
@@ -304,6 +333,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 **FRs 覆盖**：FR19, FR20, FR21, FR22, FR23, FR24, FR25, FR26
 
 **技术说明**：
+
 - 想法→任务一键转化流程
 - 任务状态机（待办/进行中/已完成）
 - 任务列表多视图（今天/即将到来/个人/项目）
@@ -320,6 +350,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 **FRs 覆盖**：FR40, FR41
 
 **技术说明**：
+
 - ⌘+K 全局搜索快捷键
 - PostgreSQL 全文搜索
 - 筛选器组件（时间/状态/分类）
@@ -334,6 +365,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 **FRs 覆盖**：FR28, FR29, FR30
 
 **技术说明**：
+
 - MemoryRecoveryCard 记忆恢复卡片组件
 - 定时任务检测 7天+ 未操作的沉底点子
 - 通知推送服务
@@ -348,6 +380,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 **FRs 覆盖**：FR31, FR32, FR43, FR44, FR46
 
 **技术说明**：
+
 - 「私密时自由，公开时体面」双视图设计
 - 分享链接权限控制
 - 系统通知中心
@@ -363,6 +396,7 @@ This document provides the complete epic and story breakdown for IdeaFlow, decom
 **FRs 覆盖**：FR33, FR34, FR35, FR36, FR37
 
 **技术说明**：
+
 - 团队/权限模块
 - 刷新同步（MVP 不做实时协作）
 - @提及通知
@@ -394,6 +428,7 @@ So that **后续功能开发有统一的技术栈和项目结构**.
 **And** Arco Design 组件库集成完成
 
 **技术验收标准：**
+
 - `pnpm install` 成功
 - `pnpm dev` 可同时启动前后端
 - 前端访问 `localhost:5173` 显示基础布局
@@ -431,6 +466,7 @@ So that **我可以使用 IdeaFlow 的功能**.
 **Then** 对应字段显示红框和错误提示
 
 **技术验收标准：**
+
 - Prisma User 表创建成功
 - POST `/ideaFlow/api/v1/auth/register` 正常工作
 - 密码不以明文存储
@@ -470,6 +506,7 @@ So that **我可以访问我的想法和任务**.
 **And** 自动跳转到登录页面
 
 **技术验收标准：**
+
 - POST `/ideaFlow/api/v1/auth/login` 正常工作
 - JWT Guard 保护需要认证的路由
 - Token 刷新机制正常工作
@@ -497,6 +534,7 @@ So that **保护我的账户安全**.
 **Then** 重定向到登录页面
 
 **技术验收标准：**
+
 - POST `/ideaFlow/api/v1/auth/logout` 正常工作
 - Cookie 正确清除
 - 前端路由守卫正常工作
@@ -532,6 +570,7 @@ So that **保持我的账户信息准确**.
 **Then** 显示错误提示「旧密码错误」
 
 **技术验收标准：**
+
 - GET `/ideaFlow/api/v1/users/me` 返回当前用户信息
 - PATCH `/ideaFlow/api/v1/users/me` 更新用户信息
 - 敏感信息（手机号）脱敏返回
@@ -563,6 +602,7 @@ So that **我可以分析用户使用情况**.
 **And** 支持后续扩展更多事件类型
 
 **技术验收标准：**
+
 - Prisma AnalyticsEvent 表创建成功
 - POST `/ideaFlow/api/v1/analytics/track` 正常工作
 - 前端 `useAnalytics` Hook 可用
@@ -602,6 +642,7 @@ So that **不错过任何灵感闪现的时刻**.
 **Then** 不创建想法，输入框保持打开
 
 **技术验收标准：**
+
 - Prisma Idea 表创建成功
 - POST `/ideaFlow/api/v1/ideas` 正常工作
 - QuickCapture 组件响应时间 < 100ms
@@ -639,6 +680,7 @@ So that **未来回顾时能想起当时的场景**.
 **Then** 显示来源预览和创建时间
 
 **技术验收标准：**
+
 - SourcePreview 组件实现
 - 链接 Open Graph 解析 API
 - 图片上传 API 正常工作
@@ -671,6 +713,7 @@ So that **回顾和管理我的灵感**.
 **And** 显示完整内容、来源预览、创建上下文
 
 **技术验收标准：**
+
 - GET `/ideaFlow/api/v1/ideas` 支持分页
 - IdeaCard 组件实现
 - 详情面板动画流畅
@@ -703,6 +746,7 @@ So that **完善或修正我的记录**.
 **And** 网络恢复后自动同步
 
 **技术验收标准：**
+
 - PATCH `/ideaFlow/api/v1/ideas/:id` 正常工作
 - 自动保存（Debounce 3秒）
 - 离线缓存支持
@@ -734,6 +778,7 @@ So that **保持我的想法库整洁**.
 **Then** 提示「此想法已关联任务，删除后关联将解除」
 
 **技术验收标准：**
+
 - DELETE `/ideaFlow/api/v1/ideas/:id` 正常工作
 - 软删除实现
 - 关联关系正确处理
@@ -771,6 +816,7 @@ So that **可视化组织我的想法**.
 **Then** 自动保存画布状态（Debounce 3秒）
 
 **技术验收标准：**
+
 - Prisma Canvas 表创建成功
 - Konva.js Stage 初始化
 - CanvasNode 组件实现
@@ -803,6 +849,7 @@ So that **查看不同区域和不同粒度的内容**.
 **And** 显示当前缩放比例
 
 **技术验收标准：**
+
 - Konva.js Stage scale 和 position 设置
 - 60fps 无卡顿（NFR3）
 - 触控板和鼠标兼容
@@ -833,6 +880,7 @@ So that **按照我的思维方式组织内容**.
 **Then** 被拖拽节点在顶层显示
 
 **技术验收标准：**
+
 - Konva.js 拖拽事件处理
 - 位置数据持久化
 - 响应时间 < 100ms（NFR2）
@@ -868,6 +916,7 @@ So that **表达想法之间的关系**.
 **Then** 连线自动跟随更新位置
 
 **技术验收标准：**
+
 - ConnectionLine 组件实现
 - Konva.js Line 和 Text 元素
 - 连线数据持久化
@@ -898,6 +947,7 @@ So that **将相关想法分类整理**.
 **Then** 区域内所有节点一起移动
 
 **技术验收标准：**
+
 - Region 组件实现
 - Konva.js Rect + Group
 - 分组关系数据持久化
@@ -931,6 +981,7 @@ So that **用不同画布管理不同主题的想法**.
 **Then** 可以修改画布名称
 
 **技术验收标准：**
+
 - GET `/ideaFlow/api/v1/canvases` 返回画布列表
 - 画布切换流畅
 
@@ -968,6 +1019,7 @@ So that **推动想法落地执行**.
 **Then** 可以看到原始想法的链接
 
 **技术验收标准：**
+
 - Prisma Task 表创建成功
 - POST `/ideaFlow/api/v1/tasks` 正常工作
 - 想法-任务关联关系存储
@@ -1002,6 +1054,7 @@ So that **按时完成任务**.
 **Then** 任务卡片显示红色过期标记
 
 **技术验收标准：**
+
 - DatePicker 组件集成
 - 截止日期数据存储和查询
 
@@ -1032,6 +1085,7 @@ So that **追踪任务进度**.
 **Then** 显示完成数/总数百分比
 
 **技术验收标准：**
+
 - 任务状态枚举实现
 - 状态变更 API
 - 进度统计 API
@@ -1061,6 +1115,7 @@ So that **按项目组织任务**.
 **Then** 可以创建、重命名、删除分类
 
 **技术验收标准：**
+
 - Prisma Category 表创建成功
 - 分类 CRUD API
 
@@ -1093,6 +1148,7 @@ So that **找到需要处理的任务**.
 **Then** 显示空状态引导
 
 **技术验收标准：**
+
 - 任务列表分页和筛选 API
 - 标签页切换组件
 - 筛选器组件
@@ -1123,6 +1179,7 @@ So that **管理任务信息**.
 **And** 关联的想法保留
 
 **技术验收标准：**
+
 - PATCH `/ideaFlow/api/v1/tasks/:id` 正常工作
 - DELETE `/ideaFlow/api/v1/tasks/:id` 正常工作
 
@@ -1162,6 +1219,7 @@ So that **找到需要的内容**.
 **Then** 显示「未找到相关内容」
 
 **技术验收标准：**
+
 - PostgreSQL 全文搜索实现
 - GET `/ideaFlow/api/v1/search?q=` API
 - 搜索响应时间 < 300ms
@@ -1196,6 +1254,7 @@ So that **更高效地浏览内容**.
 **Then** 支持按创建时间、更新时间、截止日期排序
 
 **技术验收标准：**
+
 - 筛选器组件实现
 - API 支持筛选和排序参数
 
@@ -1230,6 +1289,7 @@ So that **帮助用户发现被遗忘的点子**.
 **Then** 更新沉底点子状态
 
 **技术验收标准：**
+
 - 定时任务（Cron）配置
 - 沉底状态字段和查询
 
@@ -1258,6 +1318,7 @@ So that **回顾被遗忘的想法**.
 **Then** 跳转到沉底点子列表
 
 **技术验收标准：**
+
 - 通知服务实现
 - Prisma Notification 表
 
@@ -1286,6 +1347,7 @@ So that **回想起当时记录的原因**.
 **Then** 显示反馈按钮「这个想法帮到你了吗？」
 
 **技术验收标准：**
+
 - MemoryRecoveryCard 组件实现
 - 时间格式化（相对时间）
 
@@ -1317,6 +1379,7 @@ So that **分享时呈现干净的内容**.
 **And** 显示整洁的展示版本
 
 **技术验收标准：**
+
 - 内容可见性字段
 - 视图切换组件
 
@@ -1347,6 +1410,7 @@ So that **与他人分享我的想法**.
 **Then** 显示公开视图内容
 
 **技术验收标准：**
+
 - 分享 Token 生成
 - 公开访问页面
 
@@ -1376,6 +1440,7 @@ So that **了解重要事件**.
 **And** 跳转到相关内容
 
 **技术验收标准：**
+
 - GET `/ideaFlow/api/v1/notifications` API
 - 通知面板组件
 
@@ -1400,6 +1465,7 @@ So that **控制我收到的通知类型**.
 **Then** 不再收到该类通知
 
 **技术验收标准：**
+
 - 用户偏好设置存储
 - 通知发送前检查偏好
 
@@ -1408,7 +1474,7 @@ So that **控制我收到的通知类型**.
 ### Story 7.5: 第三方账号登录
 
 As a **用户**,
-I want **使用微信或 Apple ID 登录**,
+I want **使用微信或 Google 账号登录**,
 So that **更便捷地登录系统**.
 
 **FRs 覆盖**：FR46
@@ -1425,12 +1491,20 @@ So that **更便捷地登录系统**.
 **And** 如未绑定，创建新账号并登录
 
 **Given** 用户在登录页面
-**When** 点击「Apple ID 登录」
-**Then** 触发 Apple Sign In 流程
+**When** 点击「Google 登录」
+**Then** 触发 Google OAuth 2.0 授权流程
+
+**Given** Google授权成功
+**When** 回调返回
+**Then** 如已绑定账号，直接登录
+**And** 如未绑定，创建新账号并登录
+**And** 如Google邮箱已被占用，提示用户先登录后绑定
 
 **技术验收标准：**
-- OAuth 2.0 集成
-- 第三方账号绑定表
+
+- OAuth 2.0 集成 (微信 + Google)
+- 第三方账号绑定表 (SocialAccount)
+- User.password字段改为可选
 
 ---
 
@@ -1463,6 +1537,7 @@ So that **邀请他人查看或协作**.
 **Then** 可以查看画布内容
 
 **技术验收标准：**
+
 - 分享权限模型
 - 协作链接访问验证
 
@@ -1488,6 +1563,7 @@ So that **参与画布协作**.
 **And** 跳转到共享画布
 
 **技术验收标准：**
+
 - 团队成员关系表
 - 邀请链接验证
 
@@ -1513,6 +1589,7 @@ So that **明确任务负责人**.
 **And** 成员收到通知
 
 **技术验收标准：**
+
 - 成员选择器组件
 - 任务分配通知
 
@@ -1537,6 +1614,7 @@ So that **了解项目进展**.
 **Then** 可以看到完整内容
 
 **技术验收标准：**
+
 - 画布权限查询
 - 共享画布标记
 
@@ -1562,6 +1640,7 @@ So that **共同完善想法**.
 **Then** 看到其他人的更改（刷新同步）
 
 **技术验收标准：**
+
 - 节点创建者字段
 - 刷新同步机制
 
@@ -1573,14 +1652,14 @@ So that **共同完善想法**.
 
 ## 📊 Stories 统计汇总
 
-| Epic | Stories 数量 | FRs 覆盖 |
-|------|-------------|----------|
-| Epic 1: 用户认证与基础架构 | 6 | FR1, FR2, FR3, FR4, FR42, FR45 |
-| Epic 2: 想法捕捉与管理 | 5 | FR5, FR6, FR7, FR8, FR9, FR10, FR27 |
-| Epic 3: 自由画布体验 | 6 | FR11-18, FR38, FR39 |
-| Epic 4: 任务管理与执行 | 6 | FR19-26 |
-| Epic 5: 搜索与筛选 | 2 | FR40, FR41 |
-| Epic 6: 智能提醒（Phase 2）| 3 | FR28, FR29, FR30 |
-| Epic 7: 分享与通知（Phase 2）| 5 | FR31, FR32, FR43, FR44, FR46 |
-| Epic 8: 团队协作（Phase 3）| 5 | FR33, FR34, FR35, FR36, FR37 |
-| **合计** | **38** | **全部 46 个 FR** |
+| Epic                          | Stories 数量 | FRs 覆盖                            |
+| ----------------------------- | ------------ | ----------------------------------- |
+| Epic 1: 用户认证与基础架构    | 6            | FR1, FR2, FR3, FR4, FR42, FR45      |
+| Epic 2: 想法捕捉与管理        | 5            | FR5, FR6, FR7, FR8, FR9, FR10, FR27 |
+| Epic 3: 自由画布体验          | 6            | FR11-18, FR38, FR39                 |
+| Epic 4: 任务管理与执行        | 6            | FR19-26                             |
+| Epic 5: 搜索与筛选            | 2            | FR40, FR41                          |
+| Epic 6: 智能提醒（Phase 2）   | 3            | FR28, FR29, FR30                    |
+| Epic 7: 分享与通知（Phase 2） | 5            | FR31, FR32, FR43, FR44, FR46        |
+| Epic 8: 团队协作（Phase 3）   | 5            | FR33, FR34, FR35, FR36, FR37        |
+| **合计**                      | **38**       | **全部 46 个 FR**                   |

@@ -237,6 +237,30 @@ describe('AuthService', () => {
       // Act & Assert
       await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
+
+    it('should throw UnauthorizedException when user has no password (e.g. social login user)', async () => {
+      // Arrange
+      const existingUser = {
+        id: 'user-id-123',
+        username: 'testuser',
+        password: null, // Simulate social login user
+      };
+      mockUsersService.findByUsername.mockResolvedValue(existingUser);
+      const bcryptCompareSpy = jest.spyOn(bcrypt, 'compare');
+
+      // Act & Assert
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      expect(bcryptCompareSpy).not.toHaveBeenCalled();
+
+      // Verify error message
+      try {
+        await service.login(loginDto);
+      } catch (error) {
+        if (error instanceof UnauthorizedException) {
+          expect(error.message).toBe('该账号使用第三方登录，请使用微信或Google登录');
+        }
+      }
+    });
   });
 
   describe('validateUser', () => {

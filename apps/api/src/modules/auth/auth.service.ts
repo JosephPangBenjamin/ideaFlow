@@ -82,6 +82,15 @@ export class AuthService {
       });
     }
 
+    // ✅ 检查用户是否有密码（第三方登录用户可能无密码）
+    if (!user.password) {
+      throw new UnauthorizedException({
+        statusCode: 401,
+        message: '该账号使用第三方登录，请使用微信或Google登录',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -143,6 +152,19 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException();
     }
+  }
+
+  /**
+   * 生成JWT Token（供第三方登录使用）
+   * @param user 用户对象
+   * @returns { accessToken, refreshToken }
+   */
+  async generateTokensForUser(user: any) {
+    return this.generateTokens({
+      id: user.id,
+      username: user.username,
+      tokenVersion: (user as any).tokenVersion || 0,
+    });
   }
 
   private async generateTokens(payload: UserPayload) {
