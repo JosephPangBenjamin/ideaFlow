@@ -22,7 +22,7 @@ async function bootstrap() {
 
   // CORS 配置
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
     credentials: true,
   });
 

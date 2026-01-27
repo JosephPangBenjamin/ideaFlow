@@ -79,11 +79,8 @@ export class SocialAuthService {
     // 3. 未绑定，创建新用户并绑定
     const nickname = profile.nickname || profile.name || `${provider}_${Date.now()}`;
     const avatar = profile.avatar || profile.picture || null;
-    const email =
-      provider === 'google'
-        ? profile.email ||
-          (profile.emails?.[0]?.verified ? profile.emails[0].value : profile.emails?.[0]?.value)
-        : null;
+    // Google 登录时使用已验证的邮箱（通过 extractVerifiedEmail 方法确保邮箱已验证）
+    const email = provider === 'google' ? this.extractVerifiedEmail(profile) : null;
 
     const newUser = await this.prisma.user.create({
       data: {
