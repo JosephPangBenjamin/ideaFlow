@@ -49,6 +49,13 @@ const PublicCanvasPage = lazy(() =>
   import('@/pages/PublicCanvasPage').then((module) => ({ default: module.PublicCanvasPage }))
 );
 
+// Story 8.1: 协作分享页面组件 (无需登录)
+const SharedCanvasPage = lazy(() =>
+  import('@/features/canvas/components/SharedCanvasView').then((module) => ({
+    default: module.SharedCanvasView,
+  }))
+);
+
 export function AppRoutes() {
   const element = useRoutes([
     // Story 7.1: 公开分享路由 (无需登录)
@@ -59,6 +66,11 @@ export function AppRoutes() {
     {
       path: '/public/canvas/:token',
       element: <PublicCanvasPage />,
+    },
+    // Story 8.1: 协作分享路由 (无需登录)
+    {
+      path: '/shared/canvases/:token',
+      element: <SharedCanvasPage />,
     },
     {
       path: '/register',

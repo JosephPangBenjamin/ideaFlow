@@ -27,6 +27,7 @@ import { ConnectionLine } from './ConnectionLine';
 import { ZoomIndicator } from './ZoomIndicator';
 import { CanvasToolbar } from './CanvasToolbar'; // Canvas V2: Manual Toolbar
 import { ShareSettingsModal } from '@/components/ShareSettingsModal';
+import { CanvasShareSettingsModal } from './CanvasShareSettingsModal';
 import {
   currentCanvasAtom,
   canvasNodesAtom,
@@ -182,6 +183,7 @@ export function CanvasEditor({
   const [mounted, setMounted] = useState(false);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+  const [isCollabShareModalVisible, setIsCollabShareModalVisible] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -1362,6 +1364,7 @@ export function CanvasEditor({
             }}
             onSave={savePendingUpdates}
             onShare={() => setIsShareModalVisible(true)}
+            onCollabShare={() => setIsCollabShareModalVisible(true)}
             isSaving={isSaving}
             hasPendingUpdates={Object.keys(pendingUpdates).length > 0}
           />,
@@ -1685,6 +1688,11 @@ export function CanvasEditor({
             throw error;
           }
         }}
+      />
+      <CanvasShareSettingsModal
+        visible={isCollabShareModalVisible}
+        onClose={() => setIsCollabShareModalVisible(false)}
+        canvasId={canvas.id}
       />
     </div>
   );

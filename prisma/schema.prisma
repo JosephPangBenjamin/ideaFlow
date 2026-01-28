@@ -102,6 +102,18 @@ enum TaskStatus {
   done
 }
 
+// Story 8.1: Canvas Share Permission
+enum Permission {
+  VIEW_ONLY
+  EDITABLE
+}
+
+// Story 8.1: Canvas Share Status
+enum ShareStatus {
+  ACTIVE
+  REVOKED
+}
+
 // Canvas V2: 节点类型枚举
 enum CanvasNodeType {
   master_idea    // 主想法节点（只读，来自关联的Idea）
@@ -125,6 +137,7 @@ model Canvas {
   idea        Idea?             @relation(fields: [ideaId], references: [id], onDelete: Cascade)
   nodes       CanvasNode[]
   connections CanvasConnection[]
+  shares      CanvasShare[]     // Story 8.1: 协作分享链接
 
   @@index([userId])
   @@index([ideaId])
@@ -234,4 +247,22 @@ model SocialAccount {
   @@unique([provider, providerUserId])
   @@index([userId])
   @@map("social_accounts")
+}
+
+// Story 8.1: Canvas Share - 协作分享链接
+model CanvasShare {
+  id         String      @id @default(uuid())
+  canvasId   String      @map("canvas_id")
+  canvas     Canvas      @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+  shareToken String      @unique @map("share_token")  // 不可枚举的唯一 token
+  permission Permission  @default(VIEW_ONLY)
+  expiresAt  DateTime?   @map("expires_at")  // 可选过期时间
+  status     ShareStatus @default(ACTIVE)
+  createdAt  DateTime    @default(now()) @map("created_at")
+  createdBy  String      @map("created_by")  // 创建者用户 ID
+
+  @@index([canvasId])
+  @@index([shareToken])
+  @@index([status])
+  @@map("canvas_shares")
 }

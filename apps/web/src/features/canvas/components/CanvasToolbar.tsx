@@ -14,6 +14,7 @@ interface CanvasToolbarProps {
   onAddNode: (type: NodeTypeEnum) => void;
   onSave: () => void;
   onShare: () => void;
+  onCollabShare?: () => void;
   isSaving?: boolean;
   hasPendingUpdates?: boolean;
 }
@@ -22,6 +23,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   onAddNode,
   onSave,
   onShare,
+  onCollabShare,
   isSaving = false,
   hasPendingUpdates = false,
 }) => {
@@ -76,17 +78,31 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
           />
         </Tooltip>
 
-        <Tooltip content="分享画布" position="bottom">
+        <Tooltip content="公开分享" position="bottom">
           <Button
             size="small"
             shape="circle"
             type="secondary"
             icon={<IconShareExternal />}
             onClick={onShare}
-            aria-label="分享画布"
-            className="bg-green-600 border-none text-white hover:bg-green-500 hover:scale-110 transition-transform"
+            aria-label="公开分享"
+            className="bg-blue-600 border-none text-white hover:bg-blue-500 hover:scale-110 transition-transform"
           />
         </Tooltip>
+
+        {onCollabShare && (
+          <Tooltip content="协作分享" position="bottom">
+            <Button
+              size="small"
+              shape="circle"
+              type="secondary"
+              icon={<IconShareExternal />}
+              onClick={onCollabShare}
+              aria-label="协作分享"
+              className="bg-purple-600 border-none text-white hover:bg-purple-500 hover:scale-110 transition-transform"
+            />
+          </Tooltip>
+        )}
 
         <div className="w-[1px] h-6 bg-slate-700 mx-1" />
 
