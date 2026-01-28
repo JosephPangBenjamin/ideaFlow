@@ -1,0 +1,54 @@
+# BMad Method Workflow Status - ideaFlow
+#
+# 此文件跟踪 BMad 方法论的分析、规划和解决方案阶段
+# 实现阶段由 sprint-status.yaml 单独跟踪
+#
+# STATUS DEFINITIONS:
+# ==================
+# 初始状态（完成前）:
+#   - required: 必须完成才能继续
+#   - optional: 可以完成但非必需
+#   - recommended: 强烈建议但非必需
+#   - conditional: 仅在满足特定条件时需要（例如：if_has_ui）
+#
+# 完成状态:
+#   - {file-path}: 已创建/找到的文件（例如："docs/prd.md"）
+#   - skipped: 已跳过的可选/条件性工作流
+#
+# 此文件由 workflow-init 生成于 2026-01-27
+# 项目: ideaFlow
+# 轨迹: BMad Method (Greenfield)
+
+generated: '2026-01-27'
+project: 'ideaFlow'
+project_type: 'greenfield'
+selected_track: 'method'
+field_type: 'greenfield'
+workflow_path: '{project-root}/_bmad/bmm/workflows/workflow-status/paths/method-greenfield.yaml'
+
+workflow_status:
+  # ===========================================
+  # Phase 1: Analysis (Optional) - 分析阶段（可选）
+  # ===========================================
+  brainstorm-project: skipped
+  research: skipped
+  product-brief: '{planning_artifacts}/product-brief-ideaFlow-2025-12-28.md'
+
+  # ===========================================
+  # Phase 2: Planning - 规划阶段
+  # ===========================================
+  prd: '{planning_artifacts}/prd.md'
+  create-ux-design: '{planning_artifacts}/ux-design-specification.md'
+
+  # ===========================================
+  # Phase 3: Solutioning - 解决方案阶段
+  # ===========================================
+  create-architecture: '{planning_artifacts}/architecture.md'
+  create-epics-and-stories: '{planning_artifacts}/epics.md'
+  test-design: skipped
+  implementation-readiness: skipped
+
+  # ===========================================
+  # Phase 4: Implementation - 实现阶段
+  # ===========================================
+  sprint-planning: '{implementation_artifacts}/sprint-status.yaml'
