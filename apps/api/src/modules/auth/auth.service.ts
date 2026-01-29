@@ -1,10 +1,11 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, LoginDto } from './dto';
 import { AnalyticsService } from '../analytics/analytics.service';
+import { TeamsService } from '../teams/teams.service';
 
 interface UserPayload {
   id: string;
@@ -14,15 +15,18 @@ interface UserPayload {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly analyticsService: AnalyticsService
+    private readonly analyticsService: AnalyticsService,
+    private readonly teamsService: TeamsService
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { username, password } = registerDto;
+    const { username, password, inviteToken } = registerDto;
 
     // Check if username already exists
     const existingUser = await this.usersService.findByUsername(username);
@@ -44,6 +48,22 @@ export class AuthService {
       password: hashedPassword,
     });
 
+    // 如果提供了 inviteToken，自动加入团队
+    let redirectUrl: string | undefined;
+    let inviteWarning: string | undefined;
+    if (inviteToken) {
+      try {
+        await this.teamsService.joinByShareToken(user.id, inviteToken);
+        redirectUrl = `/shared/canvases/${inviteToken}`;
+      } catch (error: any) {
+        // 如果加入失败，记录错误但不阻止注册
+        this.logger.error('Failed to join team:', error.message || error);
+        // 返回警告信息，告知用户邀请链接无效
+        inviteWarning = '注册成功，但未能加入团队（邀请链接可能已失效）';
+        // 不抛出异常，用户可以正常注册，但不会自动加入
+      }
+    }
+
     // Generate tokens
     const tokens = await this.generateTokens({
       id: user.id,
@@ -53,11 +73,14 @@ export class AuthService {
 
     // Track registration event
     void this.analyticsService.track(
-      { eventName: 'user_registered', metadata: { username: user.username } },
+      {
+        eventName: 'user_registered',
+        metadata: { username: user.username, inviteToken: inviteToken || null },
+      },
       user.id
     );
 
-    return {
+    const result: any = {
       data: {
         user: {
           id: user.id,
@@ -67,6 +90,18 @@ export class AuthService {
       },
       refreshToken: tokens.refreshToken,
     };
+
+    // 如果成功加入团队，返回重定向 URL
+    if (redirectUrl) {
+      result.data.redirectUrl = redirectUrl;
+    }
+
+    // 如果有邀请警告信息，添加到响应中
+    if (inviteWarning) {
+      result.data.warning = inviteWarning;
+    }
+
+    return result;
   }
 
   async login(loginDto: LoginDto) {

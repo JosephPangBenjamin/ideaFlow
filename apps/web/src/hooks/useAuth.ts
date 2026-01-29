@@ -9,15 +9,21 @@ export function useAuth() {
   const navigate = useNavigate();
 
   const register = useCallback(
-    async (username: string, password: string) => {
-      const response = await authService.register({ username, password });
+    async (username: string, password: string, inviteToken?: string) => {
+      const response = await authService.register({ username, password, inviteToken });
       setAuth({
         user: response.user,
         accessToken: response.accessToken,
         isAuthenticated: true,
         isHydrated: true,
       });
-      navigate('/dashboard');
+      // 如果有重定向 URL（来自邀请链接），跳转到指定页面
+      if (response.redirectUrl) {
+        navigate(response.redirectUrl);
+      } else {
+        navigate('/dashboard');
+      }
+      return response; // 返回响应以便调用者检查 warning 等字段
     },
     [setAuth, navigate]
   );

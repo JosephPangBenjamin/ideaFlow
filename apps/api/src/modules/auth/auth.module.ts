@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
+import { TeamsModule } from '../teams/teams.module';
 import { OAuthConfigService } from './services/oauth-config.service';
 import { SocialAuthService } from './services/social-auth.service';
 import { WechatOAuthService } from './services/wechat-oauth.service';
@@ -20,6 +21,7 @@ import { JwtStrategy } from './jwt.strategy';
   imports: [
     UsersModule,
     AnalyticsModule,
+    forwardRef(() => TeamsModule),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

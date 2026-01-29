@@ -30,6 +30,8 @@ model User {
   analyticsEvents AnalyticsEvent[]
   notifications   Notification[]
   socialAccounts  SocialAccount[]
+  teamMembers     TeamMember[]
+  ownedTeams      Team[]      @relation("TeamOwner")
 
   @@map("users")
 }
@@ -138,6 +140,7 @@ model Canvas {
   nodes       CanvasNode[]
   connections CanvasConnection[]
   shares      CanvasShare[]     // Story 8.1: 协作分享链接
+  members     TeamMember[]      // Story 8.2: 团队成员
 
   @@index([userId])
   @@index([ideaId])
@@ -249,6 +252,55 @@ model SocialAccount {
   @@map("social_accounts")
 }
 
+// Story 8.2: 团队协作 - 团队表（可选，预留未来扩展）
+model Team {
+  id        String       @id @default(uuid())
+  name      String
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  owner   User         @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String       @map("owner_id")
+  members TeamMember[]
+  shares  CanvasShare[]
+
+  @@index([name])
+  @@map("teams")
+}
+
+// Story 8.2: 团队协作 - 团队成员表
+model TeamMember {
+  id        String      @id @default(uuid())
+  teamId    String?     @map("team_id")  // 可选，为空表示通过分享链接加入（无正式团队）
+  team      Team?       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  userId    String      @map("user_id")
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  canvasId  String?     @map("canvas_id")  // 可选，直接关联到画布（无团队时）
+  canvas    Canvas?     @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+
+  shareId   String?     @map("share_id")  // 关联的分享链接
+  share     CanvasShare? @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
+  role      MemberRole  @default(VIEWER)
+  joinedAt  DateTime    @default(now()) @map("joined_at")
+
+  @@unique([teamId, userId])
+  @@unique([canvasId, userId])  // 一个用户对一个画布只能有一个成员关系
+  @@index([teamId])
+  @@index([canvasId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+// Story 8.2: 团队成员角色枚举
+enum MemberRole {
+  OWNER   // 画布所有者（团队特有，分享链接没有）
+  EDITOR  // 可编辑（对应 Permission.EDITABLE）
+  VIEWER  // 仅查看（对应 Permission.VIEW_ONLY）
+}
+
 // Story 8.1: Canvas Share - 协作分享链接
 model CanvasShare {
   id         String      @id @default(uuid())
@@ -261,8 +313,18 @@ model CanvasShare {
   createdAt  DateTime    @default(now()) @map("created_at")
   createdBy  String      @map("created_by")  // 创建者用户 ID
 
+  maxUses    Int?        @map("max_uses")   // 最大使用次数（null = 无限制）
+  usedCount  Int         @default(0) @map("used_count")  // 已使用次数
+
+  teamId     String?     @map("team_id")    // 可选，关联团队
+  team       Team?       @relation(fields: [teamId], references: [id])
+
+  members    TeamMember[] // 通过此分享链接加入的成员
+
   @@index([canvasId])
   @@index([shareToken])
   @@index([status])
+  @@index([teamId])
+  @@index([maxUses])
   @@map("canvas_shares")
 }

@@ -12,6 +12,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { SearchModule } from './modules/search/search.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { TeamsModule } from './modules/teams/teams.module';
 
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -36,6 +37,7 @@ import { join } from 'path';
     CategoriesModule,
     SearchModule,
     NotificationsModule,
+    TeamsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

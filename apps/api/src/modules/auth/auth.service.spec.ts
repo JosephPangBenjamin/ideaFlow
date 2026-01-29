@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { AnalyticsService } from '../analytics/analytics.service';
+import { TeamsService } from '../teams/teams.service';
 
 // Mock bcrypt
 jest.mock('bcrypt');
@@ -15,6 +16,7 @@ describe('AuthService', () => {
   let usersService: UsersService;
   let jwtService: JwtService;
   let analyticsService: AnalyticsService;
+  let teamsService: TeamsService;
 
   const mockUsersService = {
     findByUsername: jest.fn(),
@@ -33,6 +35,10 @@ describe('AuthService', () => {
 
   const mockConfigService = {
     get: jest.fn().mockReturnValue('test-jwt-secret'),
+  };
+
+  const mockTeamsService = {
+    joinByShareToken: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -55,6 +61,10 @@ describe('AuthService', () => {
           provide: AnalyticsService,
           useValue: mockAnalyticsService,
         },
+        {
+          provide: TeamsService,
+          useValue: mockTeamsService,
+        },
       ],
     }).compile();
 
@@ -62,6 +72,7 @@ describe('AuthService', () => {
     usersService = module.get<UsersService>(UsersService);
     jwtService = module.get<JwtService>(JwtService);
     analyticsService = module.get<AnalyticsService>(AnalyticsService);
+    teamsService = module.get<TeamsService>(TeamsService);
   });
 
   afterEach(() => {
@@ -103,7 +114,7 @@ describe('AuthService', () => {
       expect(mockUsersService.findByUsername).toHaveBeenCalledWith('testuser');
       expect(bcrypt.hash).toHaveBeenCalledWith('Test1234', 10);
       expect(mockAnalyticsService.track).toHaveBeenCalledWith(
-        { eventName: 'user_registered', metadata: { username: 'testuser' } },
+        { eventName: 'user_registered', metadata: { username: 'testuser', inviteToken: null } },
         'user-id-123'
       );
     });

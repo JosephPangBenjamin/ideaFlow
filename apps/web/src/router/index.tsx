@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { useRoutes, Navigate } from 'react-router-dom';
+import { useRoutes, Navigate, useLocation, useParams } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
@@ -56,6 +56,37 @@ const SharedCanvasPage = lazy(() =>
   }))
 );
 
+// Story 8.2: 邀请注册页面 (无需登录)
+const InviteRegisterPage = lazy(() =>
+  import('@/features/auth/pages/InviteRegisterPage').then((module) => ({
+    default: module.InviteRegisterPage,
+  }))
+);
+
+/**
+ * 动态路由组件：根据 query 参数决定显示注册页面还是共享画布
+ * ?register=true → InviteRegisterPage
+ * 无参数或 ?register=false → SharedCanvasPage
+ */
+const SharedCanvasOrRegister: React.FC = () => {
+  const location = useLocation();
+
+  // 检查 URL query 参数
+  const searchParams = new URLSearchParams(location.search);
+  const shouldShowRegister = searchParams.get('register') === 'true';
+  const { token } = useParams<{ token: string }>();
+
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (shouldShowRegister) {
+    return <InviteRegisterPage />;
+  }
+
+  return <SharedCanvasPage />;
+};
+
 export function AppRoutes() {
   const element = useRoutes([
     // Story 7.1: 公开分享路由 (无需登录)
@@ -68,9 +99,10 @@ export function AppRoutes() {
       element: <PublicCanvasPage />,
     },
     // Story 8.1: 协作分享路由 (无需登录)
+    // Story 8.2: 支持 ?register=true 显示注册页面
     {
       path: '/shared/canvases/:token',
-      element: <SharedCanvasPage />,
+      element: <SharedCanvasOrRegister />,
     },
     {
       path: '/register',

@@ -3,7 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Spin, Button, Typography } from '@arco-design/web-react';
 import { IconLock, IconEye, IconEdit, IconUser } from '@arco-design/web-react/icon';
 import { getSharedCanvas, Permission } from '../services/canvas-share.service';
+import { joinByShareToken } from '@/services/teams.api';
 import { CanvasEditor } from './CanvasEditor';
+import { useAuth } from '@/hooks/useAuth';
+import { Message } from '@arco-design/web-react';
 
 /**
  * 验证 ShareToken 格式
@@ -16,10 +19,12 @@ const validateShareToken = (token: string): boolean => {
 /**
  * Shared Canvas View
  * Story 8.1: 画布分享链接访问页面
+ * Story 8.2: 支持通过邀请链接注册并加入团队
  */
 export const SharedCanvasView: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [canvasData, setCanvasData] = useState<any>(null);
@@ -45,6 +50,19 @@ export const SharedCanvasView: React.FC = () => {
         const response = await getSharedCanvas(token);
         setCanvasData(response.data.canvas);
         setPermission(response.data.permission);
+
+        // 如果用户已登录，自动加入团队
+        if (isAuthenticated && user && token) {
+          try {
+            await joinByShareToken(token);
+            Message.success('已加入团队');
+          } catch (joinError: any) {
+            // 加入失败不影响查看画布
+            const joinMessage = joinError.response?.data?.message || '加入团队失败';
+            Message.warning(joinMessage);
+            console.error('Failed to join team:', joinError);
+          }
+        }
       } catch (err: any) {
         setError(err.response?.data?.message || '加载失败');
       } finally {
@@ -53,7 +71,7 @@ export const SharedCanvasView: React.FC = () => {
     };
 
     loadCanvas();
-  }, [token]);
+  }, [token, isAuthenticated, user]);
 
   if (loading) {
     return (
@@ -128,10 +146,17 @@ export const SharedCanvasView: React.FC = () => {
             </div>
           )}
 
-          {/* 登录提示 */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/20 border border-purple-500/30">
-            <IconUser className="text-purple-400 text-sm" />
-            <Typography.Text className="text-purple-300 text-sm">未登录</Typography.Text>
+          {/* 登录提示 - 动态显示 */}
+          <div
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${isAuthenticated ? 'bg-emerald-500/20 border-emerald-500/30' : 'bg-purple-500/20 border border-purple-500/30'}`}
+          >
+            <IconUser className={isAuthenticated ? 'text-emerald-400' : 'text-purple-400'} />
+            <Typography.Text
+              className={isAuthenticated ? 'text-emerald-300' : 'text-purple-300'}
+              text-sm
+            >
+              {isAuthenticated && user ? user.username : '未登录'}
+            </Typography.Text>
           </div>
 
           {/* 返回按钮 */}
