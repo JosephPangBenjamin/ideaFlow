@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsDateString, IsUUID, validateIf } from 'class-validator';
 import { TaskStatus } from '@prisma/client';
 
 export class UpdateTaskDto {
@@ -10,7 +10,7 @@ export class UpdateTaskDto {
   @IsOptional()
   description?: string;
 
-  @IsString()
+  @IsUUID()
   @IsOptional()
   categoryId?: string | null;
 
@@ -21,4 +21,13 @@ export class UpdateTaskDto {
   @IsEnum(TaskStatus)
   @IsOptional()
   status?: TaskStatus;
+
+  // Story 8.3: 任务分配字段（支持 null 以清除分配）
+  @IsUUID()
+  @IsOptional()
+  canvasId?: string | null;
+
+  @IsUUID()
+  @IsOptional()
+  assigneeId?: string | null;
 }

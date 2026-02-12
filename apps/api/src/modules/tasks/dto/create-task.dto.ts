@@ -24,4 +24,13 @@ export class CreateTaskDto {
 
   @IsOptional()
   sources?: any; // IdeaSource[]
+
+  // Story 8.3: 任务分配字段
+  @IsUUID()
+  @IsOptional()
+  canvasId?: string;
+
+  @IsUUID()
+  @IsOptional()
+  assigneeId?: string;
 }

@@ -27,6 +27,17 @@ export interface Task {
     sources?: IdeaSource[];
   };
   sources?: IdeaSource[];
+  // Story 8.3: 任务分配字段
+  canvasId?: string | null;
+  canvas?: {
+    id: string;
+    name: string;
+  } | null;
+  assigneeId?: string | null;
+  assignee?: {
+    id: string;
+    username: string;
+  } | null;
 }
 
 export interface CreateTaskDto {
@@ -36,6 +47,9 @@ export interface CreateTaskDto {
   dueDate?: string;
   ideaId?: string;
   sources?: IdeaSource[];
+  // Story 8.3: 任务分配字段
+  canvasId?: string;
+  assigneeId?: string;
 }
 
 export interface UpdateTaskDto {
@@ -44,6 +58,9 @@ export interface UpdateTaskDto {
   status?: TaskStatus;
   categoryId?: string | null;
   dueDate?: string | null;
+  // Story 8.3: 任务分配字段
+  canvasId?: string | null;
+  assigneeId?: string | null;
 }
 
 class TasksService {
@@ -64,6 +81,9 @@ class TasksService {
     endDate?: string;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
+    // Story 8.3: 任务筛选字段
+    assigneeId?: string;
+    createdBy?: string;
   }): Promise<PaginatedResponse<Task>> {
     const response = await api.get(this.baseUrl, {
       params,

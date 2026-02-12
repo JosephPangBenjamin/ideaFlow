@@ -25,6 +25,7 @@ model User {
 
   ideas           Idea[]
   tasks           Task[]
+  assignedTasks   Task[]      @relation("TaskAssignee") // Story 8.3: 被分配的任务
   canvases        Canvas[]
   categories      Category[]
   analyticsEvents AnalyticsEvent[]
@@ -74,6 +75,12 @@ model Task {
   deletedAt   DateTime?  @map("deleted_at")
   sources     Json?      // [{ type: 'link'|'image'|'text', url?, title?, thumbnail?, note? }]
 
+  // Story 8.3: 任务分配功能
+  canvasId   String?   @map("canvas_id")   // 直接关联画布（用于团队验证）
+  canvas     Canvas?   @relation(fields: [canvasId], references: [id], onDelete: SetNull)
+  assigneeId String?   @map("assignee_id") // 任务分配给的用户
+  assignee   User?     @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+
   user User  @relation(fields: [userId], references: [id])
   idea Idea? @relation(fields: [ideaId], references: [id], onDelete: Cascade)
 
@@ -81,6 +88,8 @@ model Task {
   @@index([status])
   @@index([categoryId])
   @@index([dueDate])
+  @@index([canvasId])   // Story 8.3: 分配查询优化
+  @@index([assigneeId]) // Story 8.3: 分配查询优化
   @@map("tasks")
 }
 
@@ -141,6 +150,7 @@ model Canvas {
   connections CanvasConnection[]
   shares      CanvasShare[]     // Story 8.1: 协作分享链接
   members     TeamMember[]      // Story 8.2: 团队成员
+  tasks       Task[]            // Story 8.3: 画布关联的任务
 
   @@index([userId])
   @@index([ideaId])
@@ -216,6 +226,7 @@ enum NotificationType {
   stale_reminder
   system
   task_reminder
+  task_assigned  // Story 8.3: 任务分配通知
 }
 
 model Notification {

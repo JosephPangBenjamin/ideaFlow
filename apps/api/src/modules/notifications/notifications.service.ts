@@ -83,6 +83,22 @@ export class NotificationsService {
     });
   }
 
+  /**
+   * Story 8.3: 标记任务分配通知为已读
+   * 当任务重新分配时，标记旧分配者的通知为已读
+   * 注意：PostgreSQL 的 JSON 查询语法，使用 @> 操作符检查 JSON 字段包含
+   */
+  async markTaskAssignedNotificationsAsRead(taskId: string, userId: string) {
+    return this.prisma.$queryRaw`
+      UPDATE notifications
+      SET is_read = true
+      WHERE user_id = ${userId}
+        AND type = 'TASK_ASSIGNED'
+        AND is_read = false
+        AND data::jsonb @> ${JSON.stringify({ taskId })}::jsonb
+    `;
+  }
+
   async getUnreadCount(userId: string): Promise<number> {
     return this.prisma.notification.count({
       where: { userId, isRead: false },
@@ -106,6 +122,8 @@ export class NotificationsService {
     const importantTypes: NotificationType[] = [
       NotificationType.system,
       NotificationType.task_reminder,
+      // Story 8.3: 任务分配通知是重要的
+      NotificationType.TASK_ASSIGNED,
     ];
     return importantTypes.includes(type);
   }

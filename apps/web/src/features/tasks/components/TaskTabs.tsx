@@ -2,13 +2,24 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TaskView } from '../../../stores/tasks';
 import { useTaskFilters } from '../hooks/useTaskFilters';
-import { IconCalendar, IconApps, IconUser, IconThunderbolt } from '@arco-design/web-react/icon';
+import {
+  IconCalendar,
+  IconApps,
+  IconUser,
+  IconThunderbolt,
+  IconUserGroup,
+  IconSend,
+} from '@arco-design/web-react/icon';
 
 const tabs = [
   { key: TaskView.today, label: '今天', icon: <IconThunderbolt /> },
   { key: TaskView.upcoming, label: '即将到期', icon: <IconCalendar /> },
   { key: TaskView.personal, label: '收集箱', icon: <IconUser /> },
   { key: TaskView.project, label: '已整理', icon: <IconApps /> },
+  // Story 8.3: 分配相关视图
+  { key: TaskView.assignedToMe, label: '分配给我的', icon: <IconUserGroup /> },
+  { key: TaskView.createdByMe, label: '我创建的', icon: <IconUser /> },
+  { key: TaskView.assignedByMe, label: '我分配的', icon: <IconSend /> },
 ];
 
 export function TaskTabs() {

@@ -38,12 +38,16 @@ export const NotificationSettings = () => {
     system: '系统通知',
     stale_reminder: '沉底提醒',
     task_reminder: '任务提醒',
+    // Story 8.3: 任务分配通知
+    task_assigned: '任务分配',
   };
 
   const typeDescriptions: Record<NotificationType, string> = {
     system: '关于账户安全、系统升级等重要信息',
     stale_reminder: '提醒您长时间未处理的想法或任务',
     task_reminder: '您设置的任务提醒时间到期时的通知',
+    // Story 8.3: 任务分配通知
+    task_assigned: '当有人将任务分配给您时接收通知',
   };
 
   return (

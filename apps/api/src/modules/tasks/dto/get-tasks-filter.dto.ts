@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsString, IsDateString, IsNumber, Min } from 'class-validator';
+import { IsOptional, IsEnum, IsString, IsDateString, IsNumber, Min, IsUUID } from 'class-validator';
 import { Type } from 'class-transformer';
 import { TaskStatus } from '@prisma/client';
 
@@ -49,4 +49,13 @@ export class GetTasksFilterDto {
   @IsOptional()
   @IsEnum(['asc', 'desc'])
   sortOrder?: 'asc' | 'desc' = 'desc';
+
+  // Story 8.3: 任务筛选字段
+  @IsOptional()
+  @IsString()
+  assigneeId?: string; // 支持 "me" 特殊值
+
+  @IsOptional()
+  @IsString()
+  createdBy?: string; // 支持 "me" 特殊值
 }

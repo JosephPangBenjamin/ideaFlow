@@ -6,7 +6,7 @@ import { Task } from '../services/tasks.service';
 import { TaskDueDateBadge } from './task-due-date-badge';
 import { TaskStatusSelect } from './task-status-select';
 import { STATUS_CONFIG } from './task-status-badge';
-import { IconLink, IconImage, IconFile } from '@arco-design/web-react/icon';
+import { IconLink, IconImage, IconFile, IconUser } from '@arco-design/web-react/icon';
 import { CategoryBadge } from './CategoryBadge';
 
 interface TaskCardProps {
@@ -53,6 +53,13 @@ export function TaskCard({ task, index }: TaskCardProps) {
             <div className="flex items-center justify-between mt-auto pt-2">
               <Space size={8}>
                 <CategoryBadge category={task.category} />
+                {/* Story 8.3: 显示分配者 */}
+                {task.assignee && (
+                  <div className="flex items-center gap-1 text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                    <IconUser className="h-3 w-3" />
+                    <span>{task.assignee.username || '未知用户'}</span>
+                  </div>
+                )}
                 {task.idea?.sources && task.idea.sources.length > 0 && (
                   <div className="flex items-center gap-1 text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded border border-white/5">
                     {task.idea.sources[0]?.type === 'link' ? (

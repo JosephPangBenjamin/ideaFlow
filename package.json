@@ -39,5 +39,8 @@
     "*.{json,md,yaml,yml}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "react-mentions": "^4.4.10"
   }
 }

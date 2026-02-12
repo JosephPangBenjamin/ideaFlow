@@ -141,4 +141,4 @@ export interface Notification {
   createdAt: string;
 }
 
-export type NotificationType = 'stale_reminder' | 'system' | 'task_reminder';
+export type NotificationType = 'stale_reminder' | 'system' | 'task_reminder' | 'task_assigned'; // Story 8.3: 添加任务分配通知类型

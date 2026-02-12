@@ -31,6 +31,7 @@ import { categoriesService } from './services/categoriesService';
 import dayjs from 'dayjs';
 import { getDueDateStatus } from './utils/task-utils';
 import { CategorySelect } from './components/CategorySelect';
+import { AssigneeSelect } from './components/AssigneeSelect'; // Story 8.3
 
 const { Title, Text } = Typography;
 
@@ -430,6 +431,9 @@ const TaskDetail: React.FC = () => {
               </div>
 
               <div>
+                <Text type="secondary" className="block mb-2">
+                  分类
+                </Text>
                 <div>
                   <div className={isDone ? 'opacity-60' : ''}>
                     <CategorySelect
@@ -457,6 +461,20 @@ const TaskDetail: React.FC = () => {
                       }}
                     />
                   </Modal>
+                </div>
+              </div>
+
+              {/* Story 8.3: 分配者选择 */}
+              <div>
+                <Text type="secondary" className="block mb-2">
+                  分配给
+                </Text>
+                <div className={isDone ? 'opacity-60' : ''}>
+                  <AssigneeSelect
+                    canvasId={task.canvasId}
+                    value={task.assigneeId}
+                    onChange={(assigneeId) => updateTaskMutation.mutate({ assigneeId })}
+                  />
                 </div>
               </div>
 
